@@ -1,0 +1,20 @@
+#pragma once
+
+#include "Piece.hpp"
+
+// Sintaxis de herencia 
+class Knight : public Piece{
+    public:
+        // Constructor
+        Knight(Color c);
+
+        // Destructor 
+        ~Knight() override = default;
+
+        // La palabra clave 'override' le dice al compilador: "Asegurate de que 
+        // estoy sobreescribiendo exactamente el metodo que me pidio mi clase padre".
+        std::vector<Move> getPossibleMoves(const Board& board, const Position& currentPos) const override;
+
+        // El caballo vale 3
+        int getValue() const override { return 3; }
+};
