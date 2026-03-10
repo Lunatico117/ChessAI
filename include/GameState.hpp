@@ -54,6 +54,8 @@ class GameState {
         // Pasa el tablero por referencia para no duplicarlo y consumir mas memoria
         Board& getBoard();
 
+        const Board& getBoard() const;
+
         // Retorna el turno actual
         Color getCurrentTurn () const;
         
