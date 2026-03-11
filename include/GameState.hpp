@@ -11,6 +11,7 @@ enum  class CastleSide {
 
 struct StateInfo
 {
+
     bool wCastleK; // whiteCanCastleKingSide
     bool wCastleQ; // whiteCanCastleQueenSide
     bool bCastleK; // blackCanCastleKingSide
@@ -27,7 +28,6 @@ class GameState {
         // Determinara el turno
         Color currentTurn;
 
-
         // Detecta el estado de estas jugadas para poder usarlas
         bool wCastleK; // whiteCanCastleKingSide
         bool wCastleQ; // whiteCanCastleQueenSide
@@ -35,6 +35,11 @@ class GameState {
         bool bCastleQ; // blackCanCastleQueenSide
 
         Position enPassantTarget;
+
+        // La posicion de los Reyes
+        Position whiteKingPos;
+        Position blackKingPos;
+
 
         // Es el historial de reglas para tener en cuenta cuando se realiza un Undo
         std::stack<StateInfo> stateHistory;
@@ -58,7 +63,26 @@ class GameState {
 
         // Retorna el turno actual
         Color getCurrentTurn () const;
-        
+
+
+    // Metodos inline para acceso en O(1)
+        // Es decir como la funcion es demasiado corta se deja en el hpp, lo cual mejora la optimizacion
+        // Devuelve la posicion del rey
+        Position getKingPosition(Color color) const {
+            return (color == Color::WHITE) ? whiteKingPos : blackKingPos;
+        }
+
+        // Modifica la posicion del rey
+        void setKingPosition(Color color, const Position& newPos) {
+            if (color == Color::WHITE) {
+                whiteKingPos = newPos;
+            } else {
+                blackKingPos = newPos;
+            }
+        }
+
+
+
         // Retorna si es posible realizar el enroque 
         bool canCastle (Color color, CastleSide side) const;
 

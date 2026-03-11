@@ -17,6 +17,13 @@ GameState:: GameState(){
     // Donde se pueda hacer la captura de peon al paso
 
     enPassantTarget = Position(-1, -1);
+
+
+    // La posicion inicial de los Reyes
+    whiteKingPos = Position(7, 4);
+    blackKingPos = Position(0, 4);
+
+
 }
 
 
@@ -35,10 +42,6 @@ Color GameState::getCurrentTurn() const{
     return currentTurn;
 }
 
-Position GameState::getEnPassantTarget() const{
-    return enPassantTarget;
-}
-
 
 bool GameState::canCastle(Color color, CastleSide side) const{
     if (color == Color::WHITE){
@@ -49,8 +52,21 @@ bool GameState::canCastle(Color color, CastleSide side) const{
     }
 }
 
+
+Position GameState::getEnPassantTarget() const{
+    return enPassantTarget;
+}
+
+
 // Setters
 void GameState::updateState(Move& m){
+
+    // Verificamos que la pieza que se mueve es un rey
+    Piece* p = board.getPieceAt(m.getFrom());
+    if (p != nullptr && dynamic_cast<King*>(p) != nullptr) {
+        setKingPosition(p->getColor(), m.getTo());
+    }
+
     // Guarda el estado de las reglas o banderas en este turno
     stateHistory.push({wCastleK, wCastleQ, bCastleK, bCastleQ, enPassantTarget});
 
@@ -71,6 +87,14 @@ void GameState::updateState(Move& m){
 }
 
 void GameState::undoState(Move& m){
+
+    // Verificamos si la pieza que se va a devolver es un rey
+    Piece* p = board.getPieceAt(m.getTo());
+    if (p != nullptr && dynamic_cast<King*>(p) != nullptr) {
+        setKingPosition(p->getColor(), m.getFrom());
+    }
+
+
     // Devuelve el turno
     currentTurn = (currentTurn == Color::WHITE)? Color::BLACK : Color::WHITE;
 
@@ -157,35 +181,6 @@ void GameState::updateEnPassant(Move& m){
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -8,7 +8,9 @@
 
 // Metodo principal
 bool RuleValidator::isKingInCheck(const GameState& state, Color color) const{
-    Position kingPos = findKing(state, color);
+
+    // [MODIFICADO] ¡Lectura ultra rápida O(1) desde el caché del estado!
+    Position kingPos = state.getKingPosition(color);
 
     // Una verificacion extra por si por algun bug el rey no esta en el tablero
     if(kingPos.getRow() == -1){
@@ -16,26 +18,6 @@ bool RuleValidator::isKingInCheck(const GameState& state, Color color) const{
     }
 
     return isSquareAttacked(state, kingPos, color);
-}
-
-
-Position RuleValidator::findKing(const GameState& state, Color color) const{
-    // Obtiene el tablero a partir de un metodo de GameState
-    const Board& board = state.getBoard();
-
-    // Recorre el tablero
-    for( int r = 0; r < 7; r++){
-        for(int c = 0; r < 7; c++){
-            Position pos(r,c);
-            Piece* p = board.getPieceAt(pos);
-
-            // Hace las verificaciones para saber si es el rey que estamos buscando
-            if (p != nullptr && p->getColor()== color && dynamic_cast<King*>(p) == nullptr){
-                return pos;
-            }
-        }
-    }
-    return Position(-1, -1);
 }
 
 bool RuleValidator::isSquareAttacked(const GameState& state, const Position& targetPos, Color defenderColor)const{

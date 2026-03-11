@@ -14,8 +14,6 @@ public:
 
 private:
     // Metodos auxiliares
-    // Escanea el tablero para encontrar la coordenada actual del Rey
-    Position findKing(const GameState& state, Color color) const;
 
     // Algoritmo de Radar: Lanza rayos desde targetPos para ver si algún enemigo la ataca
     bool isSquareAttacked(const GameState& state, const Position& targetPos, Color defenderColor) const;
