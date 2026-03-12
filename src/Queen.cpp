@@ -1,11 +1,15 @@
 #include "../include/Queen.hpp"
 #include "../include/Board.hpp"
+#include "../include/GameState.hpp"
+
 
 // Constructor
 Queen::Queen (Color c) : Piece(c) {
 }
 
-std::vector<Move> Queen::getPossibleMoves(const Board& board, const Position& currentPos) const {
+std::vector<Move> Queen::getPossibleMoves(const GameState& state, const Position& currentPos) const{
+    // Extraemos el tablero del board
+    const Board& board = state.getBoard();
     std::vector <Move> moves;
     // Las 8 direcciones en las que se mueve una Dama
     // {1, 0} = Abajo, {-1, 0} = Arriba, {0, 1} = Derecha, {0, -1} = Izquierda 

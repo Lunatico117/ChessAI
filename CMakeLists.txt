@@ -24,6 +24,7 @@ set(SOURCES
     src/HumanPlayer.cpp
     src/Piece.cpp
     src/Pawn.cpp
+    src/Player.cpp
     src/Rook.cpp
     src/Bishop.cpp
     src/Knight.cpp
@@ -46,6 +47,7 @@ set(HEADERS
     include/HumanPlayer.hpp
     include/Piece.hpp
     include/Pawn.hpp
+    include/Player.hpp
     include/Rook.hpp
     include/Bishop.hpp
     include/Knight.hpp

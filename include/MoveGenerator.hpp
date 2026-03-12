@@ -6,14 +6,6 @@
 
 
 class MoveGenerator{
-    private:
-        // Reglas especiales
-        // Genera los movimientos de enroque ya que la pieza no saben que es este movimiento
-        void generateCastlingMoves (const GameState& state, std::vector<Move>& moves) const;
-
-        // Evalua la coordenada entregada por updateEnPassant para saber si es posible hacer captura al paso
-        void generateEnPassantMoves(const GameState& state, std::vector<Move>& moves) const;
-
 
     public:
         // Constructor

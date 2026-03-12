@@ -1,11 +1,14 @@
 #include "../include/Rook.hpp"
 #include "../include/Board.hpp"
+#include "../include/GameState.hpp"
 
 // Constructor
 Rook::Rook (Color c) : Piece(c) {
 }
 
-std::vector<Move> Rook::getPossibleMoves(const Board& board, const Position& currentPos) const {
+std::vector<Move> Rook::getPossibleMoves(const GameState& state, const Position& currentPos) const{
+    // Extraemos el tablero del board
+    const Board& board = state.getBoard();
     std::vector <Move> moves;
     // Las 4 direcciones en las que se mueve una torre
     // {1, 0} = Abajo, {-1, 0} = Arriba, {0, 1} = Derecha, {0, -1} = Izquierda

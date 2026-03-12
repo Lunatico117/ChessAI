@@ -1,11 +1,17 @@
 #include "../include/Pawn.hpp"
 #include "../include/Board.hpp"
+#include "../include/GameState.hpp"
 
 // Constructor 
 Pawn::Pawn (Color c) : Piece (c){
 }
 
-std::vector<Move> Pawn::getPossibleMoves(const Board& board, const Position& currentPos) const{
+std::vector<Move> Pawn::getPossibleMoves(const GameState& state, const Position& currentPos) const{
+    // Extraemos el tablero del board
+    const Board& board = state.getBoard();
+    // Extraemos la posicion de peon al paso
+    Position epTarget = state.getEnPassantTarget();
+
     std::vector<Move> moves;
     
     int row = currentPos.getRow();
@@ -17,42 +23,71 @@ std::vector<Move> Pawn::getPossibleMoves(const Board& board, const Position& cur
     //Blancas inician en la fila 6 y Negras en la fila 1
     int startRow = (this-> color == Color:: WHITE) ? 6:1;
     
+    // Fila en la que se puede coronar
+    int promotionRow = (this->color == Color::WHITE) ? 0 : 7;
+
     // MOVIMIENTOS 
     // Una casilla adelante 
     Position oneStep(row + direction, col);
     if (board.isValidPosition(oneStep) && board.isEmpty(oneStep)){
-        moves.push_back(Move(currentPos, oneStep));
+
+        //Verifica si hay coronacion
+        if (oneStep.getRow() == promotionRow) {
+            moves.push_back(Move(currentPos, oneStep, MoveType::PROMOTION, PromotionType::QUEEN));
+            moves.push_back(Move(currentPos, oneStep, MoveType::PROMOTION, PromotionType::ROOK));
+            moves.push_back(Move(currentPos, oneStep, MoveType::PROMOTION, PromotionType::BISHOP));
+            moves.push_back(Move(currentPos, oneStep, MoveType::PROMOTION, PromotionType::KNIGHT));
+        } else {
+            // Movimiento normal
+            moves.push_back(Move(currentPos, oneStep));
     
-        // Dos pasos adelante unicamente si esta en la posicion inicial 
-        if (row == startRow) {
-            Position twoSteps(row + 2 * direction, col);
-            if(board.isEmpty(twoSteps)){
-                moves.push_back(Move(currentPos, twoSteps));
-
-
+            // Dos pasos adelante unicamente si esta en la posicion inicial
+            if (row == startRow) {
+                Position twoSteps(row + 2 * direction, col);
+                if(board.isEmpty(twoSteps)){
+                    moves.push_back(Move(currentPos, twoSteps));
+                }
             }
+
         }
+
     }
 
+    // CAPTURAS
+    // Logica auxiliar (Lambda) para no repetir codigo en las capturas de la ultima fila
+    auto addCaptureMove = [&](const Position& targetPos) {
+        if (targetPos.getRow() == promotionRow) {
+            moves.push_back(Move(currentPos, targetPos, MoveType::PROMOTION, PromotionType::QUEEN));
+            moves.push_back(Move(currentPos, targetPos, MoveType::PROMOTION, PromotionType::ROOK));
+            moves.push_back(Move(currentPos, targetPos, MoveType::PROMOTION, PromotionType::BISHOP));
+            moves.push_back(Move(currentPos, targetPos, MoveType::PROMOTION, PromotionType::KNIGHT));
+        } else {
+            moves.push_back(Move(currentPos, targetPos));
+        }
+    };
 
-    // CAPTURAS 
     // Diagonal izquierda
     Position captureLeft(row + direction, col + 1);
-    if (board.isValidPosition(captureLeft) && !board.isEmpty(captureLeft)){
-        if (board.getPieceAt(captureLeft) -> getColor() != this->color){
-            moves.push_back(Move(currentPos, captureLeft));
+    if (board.isValidPosition(captureLeft) ) {
+        if ( !board.isEmpty(captureLeft)&& board.getPieceAt(captureLeft)->getColor() != this->color ){
+            addCaptureMove(captureLeft);
+        }
+        else if(captureLeft == epTarget){
+            moves.push_back(Move(currentPos, captureLeft, MoveType::EN_PASSANT));
         }
     }
 
-    // Diagonal derecha 
-    Position captureRight (row + direction, col - 1); 
-    if (board.isValidPosition(captureRight) && !board.isEmpty(captureRight)){
-        if (board.getPieceAt(captureRight) ->getColor()!= this->color){
-            moves.push_back(Move(currentPos, captureRight));
+    // Diagonal derecha
+    Position captureRight(row + direction, col - 1);
+    if (board.isValidPosition(captureRight) ) {
+        if (!board.isEmpty(captureRight) &&  board.getPieceAt(captureRight)->getColor() != this->color ) {
+            addCaptureMove(captureRight);
+        }
+        else if(captureRight == epTarget){
+            moves.push_back(Move(currentPos, captureRight, MoveType::EN_PASSANT));
         }
     }
 
-    // Posterior se haran las reglas de PEON AL PASO y la CORONACION 
-    
     return moves;
 }
+

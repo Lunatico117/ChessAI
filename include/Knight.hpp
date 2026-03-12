@@ -2,6 +2,9 @@
 
 #include "Piece.hpp"
 
+// Declaracion anticipada, en ves de incluir "GameState.hpp" para no generar dependencias circulares
+class GameState;
+
 // Sintaxis de herencia 
 class Knight : public Piece{
     public:
@@ -13,7 +16,7 @@ class Knight : public Piece{
 
         // La palabra clave 'override' le dice al compilador: "Asegurate de que 
         // estoy sobreescribiendo exactamente el metodo que me pidio mi clase padre".
-        std::vector<Move> getPossibleMoves(const Board& board, const Position& currentPos) const override;
+        std::vector<Move> getPossibleMoves(const GameState& state, const Position& currentPos) const override ;
 
         // El caballo vale 3
         int getValue() const override { return 3; }

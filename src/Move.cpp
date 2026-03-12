@@ -2,7 +2,8 @@
 #include "../include/Piece.hpp" // Aquí si incluimos Piece.h completo si necesitamos usar sus metodos
 
 // Implementacion del Constructor usando listas de inicializacion (mas rapido en C++)
-Move::Move(Position f, Position t): from(f), to(t), capturedPiece(nullptr) {
+Move::Move(Position f, Position t, MoveType mt, PromotionType pt)
+    : from(f), to(t), type(mt), promotionType(pt), capturedPiece(nullptr) {
 }
 
 // Implementacion de los Getters
@@ -26,4 +27,12 @@ void Move::setCapturedPiece(std::unique_ptr<Piece> piece){
 
 std::unique_ptr<Piece> Move::releaseCapturedPiece() {
     return std::move(capturedPiece); // El Move devuelve la memoria al tablero
+}
+
+MoveType Move::getType() const {
+    return type;
+}
+
+PromotionType Move::getPromotionType() const {
+    return promotionType;
 }

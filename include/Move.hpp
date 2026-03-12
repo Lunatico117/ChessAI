@@ -7,16 +7,38 @@
 
 class Piece;
 
+// Esto sirve para saber que tipo de movimiento se esta haciendo
+enum class MoveType {
+    NORMAL,
+    EN_PASSANT,
+    CASTLING,
+    PROMOTION
+};
+
+// Esto se usa para saber a que pieza quiere coronar el peon
+enum class PromotionType {
+    NONE,
+    QUEEN,
+    ROOK,
+    BISHOP,
+    KNIGHT
+};
+
+
 class Move
 {
     private:
         Position from;
         Position to;
         std::unique_ptr<Piece> capturedPiece;
+        MoveType type;
+        PromotionType promotionType;
 
     public:
         //Constructor
-        Move(Position from, Position to);
+        Move(Position f, Position t,
+             MoveType type = MoveType::NORMAL,
+             PromotionType pType = PromotionType::NONE);
 
         Position getFrom() const;
         Position getTo() const;
@@ -35,4 +57,15 @@ class Move
 
         std::unique_ptr<Piece> releaseCapturedPiece();
 
+        MoveType getType() const;
+        PromotionType getPromotionType() const;
+
 };
+
+
+
+
+
+
+
+

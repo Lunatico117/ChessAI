@@ -47,23 +47,130 @@ void Board::movePiece(Move& m){
         m.setCapturedPiece(std::move(grid[to.getRow()][to.getCol()]));
     }
 
-    // Movemos la pieza de from a to 
-    grid[to.getRow()][to.getCol()] = std::move(grid[from.getRow()][from.getCol()]);
+
+    // Comportamiento segun el tipo de movimiento
+    switch (m.getType()){
+        case MoveType::NORMAL:{
+            // Movemos la pieza de from a to
+            grid[to.getRow()][to.getCol()] = std::move(grid[from.getRow()][from.getCol()]);
+            break;
+        }
+
+        case MoveType::PROMOTION:{
+            // Obtenemos el color de la pieza del peon
+            Color pieceColor = grid[from.getRow()][from.getCol()] -> getColor();
+
+            // Colocamos la nueva pieza pero dependiendo del tipo de coronacion
+
+            switch (m.getPromotionType()) {
+
+                case PromotionType::QUEEN: grid[to.getRow()][to.getCol()] = std::make_unique<Queen>(pieceColor);
+                    break;
+                case PromotionType::ROOK: grid[to.getRow()][to.getCol()] = std::make_unique<Rook>(pieceColor);
+                    break;
+                case PromotionType::BISHOP: grid[to.getRow()][to.getCol()] = std::make_unique<Bishop>(pieceColor);
+                    break;
+                case PromotionType::KNIGHT: grid[to.getRow()][to.getCol()] = std::make_unique<Knight>(pieceColor);
+                    break;
+
+                default:
+                    break;
+                }
+            // Vaciamos la casilla de origen (el peon desaparece)
+            grid[from.getRow()][from.getCol()] = nullptr;
+            break;
+        }
+
+        case MoveType::EN_PASSANT: {
+            // Movemos el peon que va a capturar a la casilla en diagonal
+            grid[to.getRow()][to.getCol()] = std::move(grid[from.getRow()][from.getCol()]);
+
+            // Capturamos la pieza que estaba al lado, es decir en la misma fila pero en la columna de la diagonal
+            m.setCapturedPiece(std::move(grid[from.getRow()][to.getCol()]));
+
+            // Vaciamos la casilla
+            grid[from.getRow()][to.getCol()] = nullptr;
+            break;
+        }
+
+        case MoveType::CASTLING: {
+            // Movemos al rey a su lugar en el enroque
+            grid[to.getRow()][to.getCol()] = std::move(grid[from.getRow()][from.getCol()]);
+
+            // Movemos a la torre a su lugar en el enroque
+            int row = to.getRow();
+            if (to.getCol() == 6) { // Enroque Corto (El Rey fue a la columna 6)
+                grid[row][5] = std::move(grid[row][7]); // La Torre va de la col 7 a la 5
+            }
+            else if (to.getCol() == 2) { // Enroque Largo (El Rey fue a la columna 2)
+                grid[row][3] = std::move(grid[row][0]); // La Torre va de la col 0 a la 3
+            }
+            break;
+        }
+    }
 }
 
 
+// Revierte el movimiento
 void Board::undoPiece(Move& m){
     Position from = m.getFrom();
     Position to = m.getTo();
 
-    //Regrresamos la pieza a su origen 
-    grid[from.getRow()][from.getCol()] = std::move(grid[to.getRow()][to.getCol()]);
+    switch (m.getType()){
+    case MoveType::NORMAL:{
+        // Movemos la pieza de from a to
+        grid[from.getRow()][from.getCol()] = std::move(grid[to.getRow()][to.getCol()]);
+        break;
+    }
+
+    case MoveType::PROMOTION:{
+        // Obtenemos el color de la pieza del peon
+        Color pieceColor = grid[to.getRow()][to.getCol()] -> getColor();
+
+
+        // Colocamos la nueva pieza pero dependiendo del tipo de coronacion
+        grid[from.getRow()][from.getCol()] = std::make_unique<Pawn>(pieceColor);
+
+        // Vaciamos la casilla de origen (el peon desaparece)
+        grid[to.getRow()][to.getCol()] = nullptr;
+        break;
+    }
+
+    case MoveType::EN_PASSANT: {
+        // Devolvemos el peon a su posicion original
+        grid[from.getRow()][from.getCol()] = std::move(grid[to.getRow()][to.getCol()]);
+        break;
+    }
+
+    case MoveType::CASTLING: {
+        // 1. Devolvemos el Rey a su posicion original
+        grid[from.getRow()][from.getCol()] = std::move(grid[to.getRow()][to.getCol()]);
+
+        // 2. Devolvemos la Torre a su posicion original
+        int row = to.getRow();
+        if (to.getCol() == 6) { // Era Enroque Corto
+            grid[row][7] = std::move(grid[row][5]); // Torre vuelve a la col 7
+        }
+        else if (to.getCol() == 2) { // Era Enroque Largo
+            grid[row][0] = std::move(grid[row][3]); // Torre vuelve a la col 0
+        }
+        break;
+    }
+
+    }
 
     // ReColocamos la pieza capturada en la casilla correspondiente 
     if (m.isCapture()){
-        grid[to.getRow()][to.getCol()] = m.releaseCapturedPiece();
+        if (m.getType() == MoveType::EN_PASSANT) {
+            // Se restaura en otra casilla distinta a la que llego
+            grid[from.getRow()][to.getCol()] = m.releaseCapturedPiece();
+        } else {
+            // Captura normal o promocion
+            grid[to.getRow()][to.getCol()] = m.releaseCapturedPiece();
+        }
     }
 }
+
 
 
 // Coloca una nueva pieza para coronar un peon o para iniciar el juego

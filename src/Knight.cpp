@@ -1,11 +1,14 @@
 #include "../include/Knight.hpp"
 #include "../include/Board.hpp"
+#include "../include/GameState.hpp"
 
 // Constructor
 Knight::Knight (Color c) : Piece(c) {
 }
 
-std::vector<Move> Knight::getPossibleMoves(const Board& board, const Position& currentPos) const {
+std::vector<Move> Knight::getPossibleMoves(const GameState& state, const Position& currentPos) const{
+    // Extraemos el tablero del board
+    const Board& board = state.getBoard();
     std::vector <Move> moves;
     // Las 8 direcciones en las que se mueve un Caballo
     // {2, 1} = 2 Abajo 1 Derecha, {2, -1} = 2 Abajo 1 izquierda, {-2, 1} = 2 Arriba 1 Derecha, {-2, -1} = 2 Arriba 1 Izquierda,

@@ -1,11 +1,14 @@
 #include "../include/Bishop.hpp"
 #include "../include/Board.hpp"
+#include "../include/GameState.hpp"
 
 // Constructor
 Bishop::Bishop (Color c) : Piece(c) {
 }
 
-std::vector<Move> Bishop::getPossibleMoves(const Board& board, const Position& currentPos) const {
+std::vector<Move> Bishop::getPossibleMoves(const GameState& state, const Position& currentPos) const{
+    // Extraemos el tablero del board
+    const Board& board = state.getBoard();
     std::vector <Move> moves;
     // Las 4 direcciones en las que se mueve un alfil
     // {1, 1} = Abajo Derecha, {1, -1} = Abajo Izquierda, {-1, 1} = Arriba Derecha, {-1, -1} = Arriba Izquierda

@@ -9,7 +9,7 @@
 // Lo cual arroja el error de Board no esta definido, ya que nunca terminara de leerlo
 // Le decimos a Piece que existe un Board, sin tener que incluir todo Board.hpp, como una promesa
 class Board;
-
+class GameState;
 
 // Usamos un enum class para mayor seguridad en C++ en lugar de ints sueltos
 enum class Color {
@@ -38,7 +38,7 @@ class Piece{
         // Metodo virtual puro ( =0) 
         // Esto lo convierte en clase abstracta 
         // Obliga a sus subclases crear sus propias reglas de movimiento
-        virtual std::vector<Move> getPossibleMoves(const Board& board, const Position& currentPos) const = 0;
+        virtual std::vector<Move> getPossibleMoves(const GameState& state, const Position& currentPos) const = 0;
 
         // Cada pieza tiene un valor distinto
         virtual int getValue() const = 0;
