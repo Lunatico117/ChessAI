@@ -1,4 +1,5 @@
 #include "../include/MoveGenerator.hpp"
+#include "../include/RuleValidator.hpp"
 #include "../include/Pawn.hpp"
 
 // Metodo principal
@@ -23,7 +24,10 @@ std::vector<Move> MoveGenerator::generatePseudoLegalMoves(const GameState& state
             if(p != nullptr && p ->getColor() == turn){
                 std::vector<Move> pieceMoves = p->getPossibleMoves(board, currentPos);
 
-                moves.insert(moves.end(), pieceMoves.begin(), pieceMoves.end());
+                // Extraemos cada movimiento original (por referencia) y lo TRASLADAMOS a la lista principal
+                for (Move& m : pieceMoves) {
+                    moves.push_back(std::move(m));
+                }
             }
         }
     }
@@ -33,6 +37,46 @@ std::vector<Move> MoveGenerator::generatePseudoLegalMoves(const GameState& state
 
     return moves;
 }
+
+
+std::vector<Move> MoveGenerator::generateLegalMoves(GameState& state) const{
+    std::vector<Move> legalMoves;
+
+    // Guardamos el turno original porque en updateState se cambiara en cuanto simulemos el movimiento
+    Color originalTurn = state.getCurrentTurn();
+
+    // Obtenemos todos los movimientos pseudolegales generados por las piezas
+    std::vector<Move> pseudoLegalMoves = generatePseudoLegalMoves(state);
+
+    // Reservamos la memoria suficiente para no deperdiciar
+    legalMoves.reserve(pseudoLegalMoves.size());
+
+    // Instanciamos el RuleValidator
+    RuleValidator validator;
+
+    // Simulacion de los movimientos
+    for (Move& move : pseudoLegalMoves){
+
+        // Simulamos el movimiento
+        state.updateState(move);
+
+        // Verificamos si el rey esta amenazado
+        // (Le pasamos originalTurn porque state ya avanzo al turno del enemigo y necesita saber sobre el rey del turno actual)
+        bool isKingSafe = !validator.isKingInCheck(state, originalTurn);
+
+        // Devolvemos el movimiento
+        state.undoState(move);
+
+        // Confirmamos si el rey estaba en jaque o no
+        if (isKingSafe){
+            // Traslada los movimientos
+            legalMoves.push_back(std::move(move));
+        }
+    }
+    return legalMoves;
+}
+
+
 
 // Metodos privados auxiliares
 void MoveGenerator:: generateCastlingMoves (const GameState& state, std::vector<Move>& moves) const {
@@ -90,7 +134,7 @@ void MoveGenerator::generateEnPassantMoves(const GameState& state, std::vector<M
         }
     }
 
-    if (epTarget.getCol()>0){
+    if (epTarget.getCol()<7){
         Position rightPos(pawnRow, epTarget.getCol() + 1);
         Piece* p = board.getPieceAt(rightPos);
 

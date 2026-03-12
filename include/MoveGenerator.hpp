@@ -25,6 +25,6 @@ class MoveGenerator{
 
 
         // Se implementara posteriormente el metodo de los movimientos legales
-        // std::vector<Move> generateLegalMoves(GameState& state) const;
+        std::vector<Move> generateLegalMoves(GameState& state) const;
 
 };

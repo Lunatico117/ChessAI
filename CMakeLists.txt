@@ -15,7 +15,7 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
 
 # 3. AQUÍ ES DONDE APARECERÁN TUS ARCHIVOS
-# Lista todos tus archivos .cpp aquí (borra los # para habilitarlos)
+# Lista todos tus archivos .cpp aquí 
 set(SOURCES
     src/Game.cpp
     src/Board.cpp
@@ -33,6 +33,8 @@ set(SOURCES
     src/Position.cpp
     src/MoveGenerator.cpp
     src/RuleValidator.cpp
+    main.cpp
+
 )
 
 # 4. Lista tus archivos de cabecera (.hpp o .h) para que Qt Creator los muestre

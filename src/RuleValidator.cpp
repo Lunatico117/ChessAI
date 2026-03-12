@@ -9,7 +9,7 @@
 // Metodo principal
 bool RuleValidator::isKingInCheck(const GameState& state, Color color) const{
 
-    // [MODIFICADO] ¡Lectura ultra rápida O(1) desde el caché del estado!
+    // Lectura rapida O(1) desde el cache del estado!
     Position kingPos = state.getKingPosition(color);
 
     // Una verificacion extra por si por algun bug el rey no esta en el tablero

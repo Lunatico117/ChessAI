@@ -21,6 +21,14 @@ class Move
         Position getFrom() const;
         Position getTo() const;
 
+        // Prohibir copias explicitamente (Buena practica)
+        Move(const Move&) = delete;
+        Move& operator=(const Move&) = delete;
+
+        // Permitir traslados (Move semantics)
+        Move(Move&&) noexcept = default;
+        Move& operator=(Move&&) noexcept = default;
+
         bool isCapture () const;
 
         void setCapturedPiece(std::unique_ptr<Piece> piece);
