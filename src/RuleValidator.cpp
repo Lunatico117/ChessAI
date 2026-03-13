@@ -7,7 +7,7 @@
 #include "../include/Queen.hpp"
 
 // Metodo principal
-bool RuleValidator::isKingInCheck(const GameState& state, Color color) const{
+bool RuleValidator::isKingInCheck(const GameState& state, Color color) {
 
     // Lectura rapida O(1) desde el cache del estado!
     Position kingPos = state.getKingPosition(color);
@@ -20,7 +20,7 @@ bool RuleValidator::isKingInCheck(const GameState& state, Color color) const{
     return isSquareAttacked(state, kingPos, color);
 }
 
-bool RuleValidator::isSquareAttacked(const GameState& state, const Position& targetPos, Color defenderColor)const{
+bool RuleValidator::isSquareAttacked(const GameState& state, const Position& targetPos, Color defenderColor){
     // Obtiene el tablero a partir de un metodo de GameState
     const Board& board = state.getBoard();
     // Obtiene fila y columna de la posicion

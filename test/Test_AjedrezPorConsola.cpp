@@ -70,8 +70,9 @@ int main() {
         // Generamos los movimientos legales para el turno actual
         std::vector<Move> legalMoves = generator.generateLegalMoves(state);
 
-        //Imprimir movimientos legales ---
-        /*std::cout << "\nMovimientos legales disponibles:\n";
+        // Imprimir movimientos legales ---
+        // Comentar si no se quieren ver los movimientos
+        std::cout << "\nMovimientos legales disponibles:\n";
         for (const Move& m : legalMoves) {
             // Obtenemos las coordenadas de la matriz
             int fromR = m.getFrom().getRow();
@@ -89,7 +90,7 @@ int main() {
         }
         std::cout << "--------------------------------\n";
         // -------------------------------------------
-        */
+
         // 3. Condición de Fin de Juego (Jaque Mate o Ahogado)
         if (legalMoves.empty()) {
             if (validator.isKingInCheck(state, currentTurn)) {

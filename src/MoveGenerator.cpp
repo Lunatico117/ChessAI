@@ -48,9 +48,6 @@ std::vector<Move> MoveGenerator::generateLegalMoves(GameState& state) const{
     // Reservamos la memoria suficiente para no deperdiciar
     legalMoves.reserve(pseudoLegalMoves.size());
 
-    // Instanciamos el RuleValidator
-    RuleValidator validator;
-
     // Simulacion de los movimientos
     for (Move& move : pseudoLegalMoves){
 
@@ -59,7 +56,7 @@ std::vector<Move> MoveGenerator::generateLegalMoves(GameState& state) const{
 
         // Verificamos si el rey esta amenazado
         // (Le pasamos originalTurn porque state ya avanzo al turno del enemigo y necesita saber sobre el rey del turno actual)
-        bool isKingSafe = !validator.isKingInCheck(state, originalTurn);
+        bool isKingSafe = !RuleValidator::isKingInCheck(state, originalTurn);
 
         // Devolvemos el movimiento
         state.undoState(move);

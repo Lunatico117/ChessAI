@@ -1,20 +1,14 @@
-#pragma once
+#ifndef RULEVALIDATOR_HPP
+#define RULEVALIDATOR_HPP
 
 #include "GameState.hpp"
 #include "Position.hpp"
-#include "Piece.hpp"
 
 class RuleValidator {
 public:
-    RuleValidator() = default;
-
-    // Metodo principal
-    // Devuelve true si el Rey del color del turno esta con alguna pieza amenazandolo
-    bool isKingInCheck(const GameState& state, Color color) const;
-
-private:
-    // Metodos auxiliares
-
-    // Algoritmo de Radar: Lanza rayos desde targetPos para ver si algún enemigo la ataca
-    bool isSquareAttacked(const GameState& state, const Position& targetPos, Color defenderColor) const;
+    // Ahora son estáticos y no tienen "const" al final
+    static bool isKingInCheck(const GameState& state, Color color);
+    static bool isSquareAttacked(const GameState& state, const Position& targetPos, Color defenderColor);
 };
+
+#endif
