@@ -34,6 +34,7 @@ set(SOURCES
     src/Position.cpp
     src/MoveGenerator.cpp
     src/RuleValidator.cpp
+    test/Test_jaqueMatePastor.cpp
     main.cpp
 
 )
@@ -60,7 +61,8 @@ set(HEADERS
 )
 
 # 5. Crear el ejecutable con la interfaz gráfica (WIN32 evita que salga la consola negra en Windows)
-add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS})
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS}
+    test/Test_AjedrezPorConsola.cpp)
 
 # 6. Vincular tu código con las herramientas gráficas de Qt
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets)
