@@ -1,62 +1,45 @@
+// Importa la clase base en Qt para aplicaciones GUI (interfaz grfica de usuario) sin widgets tradicionales
+#include <QGuiApplication>
 
-#include <iostream>
-#include "include/Game.hpp"
-#include "include/HumanPlayer.hpp"
+// Importa la clase necesaria para cargar y gestionar aplicaciones basadas en QML/Qt Quick
+#include <QQmlApplicationEngine>
 
-// Includes necesarios para printBoard
-#include "include/Pawn.hpp"
-#include "include/Rook.hpp"
-#include "include/Knight.hpp"
-#include "include/Bishop.hpp"
-#include "include/Queen.hpp"
-#include "include/King.hpp"
+// Permite exponer objetos, variables y funciones de C++ para que sean accesibles directamente en la interfaz QML,
+// definiendo el alcance (scope) de las propiedades en una jerarquia
+#include <QQmlContext>
 
-// La funcion de impresion se queda en el main (nuestra "interfaz de consola")
-void printBoard(const Board& board) {
-    std::cout << "\n  a b c d e f g h\n";
-    for (int r = 0; r < 8; r++) {
-        std::cout << 8 - r << " ";
-        for (int c = 0; c < 8; c++) {
-            Piece* p = board.getPieceAt(Position(r, c));
-            if (p == nullptr) {
-                std::cout << ". ";
-            } else {
-                char base = '?';
-                if (dynamic_cast<Pawn*>(p)) base = 'P';
-                else if (dynamic_cast<Rook*>(p)) base = 'R';
-                else if (dynamic_cast<Knight*>(p)) base = 'N';
-                else if (dynamic_cast<Bishop*>(p)) base = 'B';
-                else if (dynamic_cast<Queen*>(p)) base = 'Q';
-                else if (dynamic_cast<King*>(p)) base = 'K';
+#include "../controllers/ChessController.hpp"
 
-                if (p->getColor() == Color::BLACK) base += 32;
-                std::cout << base << " ";
-            }
-        }
-        std::cout << 8 - r << "\n";
-    }
-    std::cout << "  a b c d e f g h\n\n";
-}
 
-int main() {
-    std::cout << "=== BIENVENIDO A CHESS AI ===\n";
+int main(int argc, char *argv[]) {
+    // Iniciamos la aplicacion grafica
+    QGuiApplication app(argc, argv);
 
-    HumanPlayer whitePlayer(Color::WHITE);
-    HumanPlayer blackPlayer(Color::BLACK);
+    // Instanciamos el controlador
+    ChessController chessController;
 
-    Game chessGame(&whitePlayer, &blackPlayer);
+    // Iniciamos el motor de QML (El encargado de dibujar la pantalla)
+    QQmlApplicationEngine engine;
 
-    // Bucle de la Interfaz de Usuario
-    bool isRunning = true;
-    while (isRunning) {
-        // 1. Dibujamos el tablero pidiéndoselo al juego
-        printBoard(chessGame.getBoard());
+    // Inyectamos nuestro controlador de C++ dentro del mundo de QML.
+    // A partir de ahora, QML conocera una variable global llamada "ChessController"
+    engine.rootContext()->setContextProperty("chessController", &chessController);
 
-        // 2. Le decimos al juego que procese un turno
-        // playTurn devolvera false si alguien ganó o hubo empate
-        isRunning = chessGame.playTurn();
-    }
+    // Cargamos el archivo visual principal (main.qml)
+    // Usualmente en Qt6 se usa el sistema de recursos "qrc:/"
+    const QUrl url(QStringLiteral("qrc:/ui/main.qml"));
 
-    std::cout << "Gracias por jugar.\n";
-    return 0;
+    // Es un escuchador para saber si la ventana se creo con exito
+    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
+                    // Es un funcion Lambda para saber si el objeto visual resulto nulo, si es asi cierra el programa evitando errores o crasheos
+                     &app, [url](QObject *obj, const QUrl &objUrl) {
+                         if (!obj && url == objUrl)
+                             QCoreApplication::exit(-1); // Falla si no encuentra el archivo QML
+                     }, Qt::QueuedConnection);
+
+    // Es el que empieza a construir los elementos visuales del main.qml
+    engine.load(url);
+
+    // Entregamos el control al bucle de eventos de la ventana el que se queda "escuchando" nuestros clics o movimientos
+    return app.exec();
 }

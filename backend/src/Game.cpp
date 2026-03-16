@@ -39,3 +39,56 @@ bool Game::playTurn() {
 const Board& Game::getBoard() const {
     return state.getBoard();
 }
+
+std::vector<Move> Game::getLegalMovesForPiece(Position pos) {
+    // Generamos TODOS los movimientos legales del turno actual
+    std::vector<Move> allLegalMoves = generator.generateLegalMoves(state);
+    std::vector<Move> pieceMoves;
+
+    // Filtramos solo los que pertenecen a la pieza que el usuario toco
+    for (Move& m : allLegalMoves) {
+        if (m.getFrom() == pos) {
+            pieceMoves.push_back(std::move(m));
+        }
+    }
+    return pieceMoves;
+}
+
+
+bool Game::processMove(Position from, Position to) {
+    if (gameOver) return false;
+
+    // Generamos los movimientos legales
+    std::vector<Move> legalMoves = generator.generateLegalMoves(state);
+
+    bool moveFound = false;
+
+    // Buscamos y ejecutamos directamente (sin 'const' para poder usar 'm')
+    for (Move& m : legalMoves) {
+        if (m.getFrom() == from && m.getTo() == to) {
+            state.updateState(m);
+            moveFound = true;
+            break;
+        }
+    }
+
+    // Si no se encontro el movimiento, lo rechazamos
+    if (!moveFound) {
+        return false;
+    }
+
+    // Verificamos si este movimiento causo Jaque Mate o Tablas al rival
+    Color nextTurn = state.getCurrentTurn();
+    std::vector<Move> nextMoves = generator.generateLegalMoves(state);
+
+    if (nextMoves.empty()) {
+        if (RuleValidator::isKingInCheck(state, nextTurn)) {
+            std::cout << "¡JAQUE MATE!\n";
+        } else {
+            std::cout << "¡TABLAS por Rey Ahogado!\n";
+        }
+        gameOver = true;
+    }
+
+    return true; // Movimiento exitoso
+}

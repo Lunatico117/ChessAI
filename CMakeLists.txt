@@ -42,6 +42,7 @@ set(SOURCES
 
         # --- Tests y Main ---
         test/Test_jaqueMatePastor.cpp
+        test/Test_AjedrezPorConsola.cpp
         main.cpp
     )
 
@@ -72,13 +73,13 @@ set(HEADERS
     )
 
 # 5. Crear el ejecutable con la interfaz gráfica (WIN32 evita que salga la consola negra en Windows)
-add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS}
-)
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
 # 6. Incluir directorios para que el compilador encuentre los .hpp más fácilmente
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/backend/include
     ${CMAKE_SOURCE_DIR}/controllers
+    ${CMAKE_SOURCE_DIR}/ui
 )
 
 
@@ -91,6 +92,15 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt6::Quick
 )
 
+# 8. Empaquetamos la interfaz gráfica en el ejecutable
+# Esto permite usar la ruta "qrc:/ui/main.qml" en tu main.cpp
+qt_add_resources(${PROJECT_NAME} "qml_resources" PREFIX "/" FILES
+    ui/main.qml
+    ui/DificultyAIView.qml
+    ui/GameOverView.qml
+    ui/GameView.qml
+    ui/MenuView.qml
+)
 
 
 
