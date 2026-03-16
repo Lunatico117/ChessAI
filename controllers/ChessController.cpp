@@ -38,13 +38,43 @@ bool ChessController::attemptMove(int fromRow, int fromCol, int toRow, int toCol
     bool success = m_game.processMove(from, to);
 
     if (success) {
+        // Cambia el turno de manera segura
+        m_currentTurn = (m_currentTurn == "white") ? "black" : "white";
         updateBoardState(); // Actualiza el caché visual (Fase 2 completada)
     }
 
     return success; // Retorna true a QML para hacer un sonido de "Pieza movida"
 }
 
+QString ChessController::getPieceIcon(int row, int col) const {
+    // 1. Obtenemos el tablero de solo lectura (O(1))
+    const Board& board = m_game.getBoard();
 
+    // 2. Leemos el puntero de la pieza en esa posición
+    Piece* piece = board.getPieceAt(Position(row, col));
+
+    // 3. Si es nullptr, la casilla está vacía
+    if (!piece) {
+        return "";
+    }
+
+    // 4. Determinamos el prefijo del color ("w_" o "b_")
+    QString colorPrefix = (piece->getColor() == Color::WHITE) ? "w" : "b";
+    QString pieceName = "";
+
+    // 5. Polimorfismo: Averiguamos qué pieza es usando dynamic_cast
+    // Tal como lo diseñaste en tu GameState para la captura al paso
+    if (dynamic_cast<Pawn*>(piece)) pieceName = "pawn";
+    else if (dynamic_cast<Rook*>(piece)) pieceName = "rook";
+    else if (dynamic_cast<Knight*>(piece)) pieceName = "knight";
+    else if (dynamic_cast<Bishop*>(piece)) pieceName = "bishop";
+    else if (dynamic_cast<Queen*>(piece)) pieceName = "queen";
+    else if (dynamic_cast<King*>(piece)) pieceName = "king";
+
+    // 6. Retornamos la ruta exacta que QML necesita
+    // Ejemplo: "qrc:/ui/assets/w_pawn.png"
+    return "qrc:/ui/assets/" + colorPrefix + "_" + pieceName + ".svg";
+}
 
 void ChessController::updateBoardState() {
     QVariantList newList;
@@ -65,10 +95,10 @@ void ChessController::updateBoardState() {
 
             if (p == nullptr) {
                 squareData["type"] = "empty";
-                squareData["color"] = "none";
+                squareData["pieceColor"] = "none";
             } else {
                 // Guardamos el color
-                squareData["color"] = (p->getColor() == Color::WHITE) ? "white" : "black";
+                squareData["pieceColor"] = (p->getColor() == Color::WHITE) ? "white" : "black";
 
                 // Identificamos el tipo de pieza usando dynamic_cast
                 if (dynamic_cast<Pawn*>(p)) squareData["type"] = "pawn";

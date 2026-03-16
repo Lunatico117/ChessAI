@@ -24,7 +24,7 @@ class ChessController : public QObject {
     // Q_PROPERTY es una macro que declara propiedades que el MOC puede gestionar
     // En este se define el como acceder y notificar cambios variables (Tambien las puede modifcar en algunos casos, este no es uno)
     Q_PROPERTY (QVariantList boardState READ getBoardState NOTIFY boardChanged)
-
+    Q_PROPERTY(QString currentTurn READ getCurrentTurn NOTIFY boardChanged)
 
 public:
     // explicit: Evita que C++ haga conversiones de tipos automaticas y
@@ -34,9 +34,12 @@ public:
 
     // Q_INVOKABLE es una macro que expone los metodos de una clase C++ a QML para que sea invocada sin necesidad de invocarla como un slot
     Q_INVOKABLE bool attemptMove(int fromRow, int fromCol, int toRow, int toCol);
+    Q_INVOKABLE QString getPieceIcon(int row, int col) const;
 
     // Es el metodo Getter que exige el Q_PROPERTY, con el const garantiza que consultar el tablero no lo modificara
     QVariantList getBoardState() const;
+
+    QString getCurrentTurn() const { return m_currentTurn; }
 
     // Es una notificacion emitida por el objeto cuando hay un cambio de estado o interacion
 signals:
@@ -47,6 +50,8 @@ private:
      // Se instancia Game que es el encargado de comunicarse con la logica de las clases
     Game m_game;
 
+    // Esta variable llevara el control de los turnos
+    QString m_currentTurn = "white";
 
     // CACHE DE OPTIMIZACION: Almacena el tablero ya traducido a QML.
     // Evita recalcular la matriz cada vez que QML lee la propiedad.

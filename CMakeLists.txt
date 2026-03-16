@@ -100,10 +100,17 @@ qt_add_resources(${PROJECT_NAME} "qml_resources" PREFIX "/" FILES
     ui/GameOverView.qml
     ui/GameView.qml
     ui/MenuView.qml
+    ui/assets/b_bishop.svg
+    ui/assets/w_bishop.svg
+    ui/assets/b_king.svg
+    ui/assets/w_king.svg
+    ui/assets/b_knight.svg
+    ui/assets/w_knight.svg
+    ui/assets/b_queen.svg
+    ui/assets/w_queen.svg
+    ui/assets/b_pawn.svg
+    ui/assets/w_pawn.svg
+    ui/assets/b_rook.svg
+    ui/assets/w_rook.svg
+
 )
-
-
-
-
-
-
