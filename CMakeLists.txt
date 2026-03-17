@@ -39,6 +39,7 @@ set(SOURCES
 
     # --- Controladores (Puente C++ <-> QML) ---
         controllers/ChessController.cpp
+        controllers/BoardModel.cpp
 
         # --- Tests y Main ---
         test/Test_jaqueMatePastor.cpp
@@ -70,6 +71,7 @@ set(HEADERS
 
         # --- Controladores ---
         controllers/ChessController.hpp
+        controllers/BoardModel.hpp
     )
 
 # 5. Crear el ejecutable con la interfaz gráfica (WIN32 evita que salga la consola negra en Windows)

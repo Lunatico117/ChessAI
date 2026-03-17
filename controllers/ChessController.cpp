@@ -1,149 +1,151 @@
 #include "ChessController.hpp"
-// Se llama para instanciar a los jugadores
 #include "../backend/include/HumanPlayer.hpp"
-// Incluimos las piezas para usar el dynamic_cast
 #include "../backend/include/Pawn.hpp"
 #include "../backend/include/Rook.hpp"
 #include "../backend/include/Knight.hpp"
 #include "../backend/include/Bishop.hpp"
 #include "../backend/include/Queen.hpp"
 #include "../backend/include/King.hpp"
-#include <QDebug> // Para imprimir en la consola de Qt
+#include <QDebug>
 
-
-
-// Constructor
 ChessController::ChessController(QObject *parent)
     : QObject(parent),
-    // Al instanciar Game se deben tambien agregar dos instancias de jugador (Posteriormente sera una IA y un jugador)
-    // Se reserva dinamicamente con new y despues las borraremos con delete en Game para evitar fugas de memoria
-    m_game(new HumanPlayer(Color::WHITE), new HumanPlayer(Color::BLACK))
+    m_game(new HumanPlayer(Color::WHITE), new HumanPlayer(Color::BLACK)),
+    // Esto lo que hace es que si el BoardModel se destruye entonces el m_boardModel Tambien
+    m_boardModel(new BoardModel(this))
 {
-    // Al nacer el controlador, generamos la primera "foto" del tablero inicial
+    // Este metodo lee la matriz y la convierte para que QML la pueda entender
     updateBoardState();
-
-}
-
-// Cuando la interfaz grafica necesite saber como esta el tablero le entragamos el m_cacheBoard
-// Asi no tenemos que mirar todo el tablero de nuevo
-QVariantList ChessController::getBoardState() const {
-    return m_cachedBoard;
-}
-
-bool ChessController::attemptMove(int fromRow, int fromCol, int toRow, int toCol) {
-    Position from(fromRow, fromCol);
-    Position to(toRow, toCol);
-
-    // Le delegamos todo el trabajo a la fachada Game
-    bool success = m_game.processMove(from, to);
-
-    if (success) {
-        // Cambia el turno de manera segura
-        m_currentTurn = (m_currentTurn == "white") ? "black" : "white";
-        updateBoardState(); // Actualiza el caché visual (Fase 2 completada)
-    }
-
-    return success; // Retorna true a QML para hacer un sonido de "Pieza movida"
-}
-
-QString ChessController::getPieceIcon(int row, int col) const {
-    // 1. Obtenemos el tablero de solo lectura (O(1))
-    const Board& board = m_game.getBoard();
-
-    // 2. Leemos el puntero de la pieza en esa posición
-    Piece* piece = board.getPieceAt(Position(row, col));
-
-    // 3. Si es nullptr, la casilla está vacía
-    if (!piece) {
-        return "";
-    }
-
-    // 4. Determinamos el prefijo del color ("w_" o "b_")
-    QString colorPrefix = (piece->getColor() == Color::WHITE) ? "w" : "b";
-    QString pieceName = "";
-
-    // 5. Polimorfismo: Averiguamos qué pieza es usando dynamic_cast
-    // Tal como lo diseñaste en tu GameState para la captura al paso
-    if (dynamic_cast<Pawn*>(piece)) pieceName = "pawn";
-    else if (dynamic_cast<Rook*>(piece)) pieceName = "rook";
-    else if (dynamic_cast<Knight*>(piece)) pieceName = "knight";
-    else if (dynamic_cast<Bishop*>(piece)) pieceName = "bishop";
-    else if (dynamic_cast<Queen*>(piece)) pieceName = "queen";
-    else if (dynamic_cast<King*>(piece)) pieceName = "king";
-
-    // 6. Retornamos la ruta exacta que QML necesita
-    // Ejemplo: "qrc:/ui/assets/w_pawn.png"
-    return "qrc:/ui/assets/" + colorPrefix + "_" + pieceName + ".svg";
 }
 
 void ChessController::updateBoardState() {
-    QVariantList newList;
-    // Se usa el metodo para obtener el tablero
+    std::vector<SquareData> newBoard;
+    // Se reserva una lista vacia de 64 casillas
+    newBoard.reserve(64);
+
+    // Obtenemos el tablero real del motor (Por referencia)
     const Board& board = m_game.getBoard();
 
-    // Recorremos la matriz 8x8
-    // Se puede hacer esto ya que la IA no lo usara, por lo tanto no daña la optimizacion
     for (int row = 0; row < 8; ++row) {
         for (int col = 0; col < 8; ++col) {
-
-            // Usamos la clase Position
             Position pos(row, col);
             Piece* p = board.getPieceAt(pos);
 
-            // QVariantMap es como un diccionario de Python o un objeto JSON
-            QVariantMap squareData;
+            SquareData sq;
 
-            if (p == nullptr) {
-                squareData["type"] = "empty";
-                squareData["pieceColor"] = "none";
-            } else {
-                // Guardamos el color
-                squareData["pieceColor"] = (p->getColor() == Color::WHITE) ? "white" : "black";
-
-                // Identificamos el tipo de pieza usando dynamic_cast
-                if (dynamic_cast<Pawn*>(p)) squareData["type"] = "pawn";
-                else if (dynamic_cast<Rook*>(p)) squareData["type"] = "rook";
-                else if (dynamic_cast<Knight*>(p)) squareData["type"] = "knight";
-                else if (dynamic_cast<Bishop*>(p)) squareData["type"] = "bishop";
-                else if (dynamic_cast<Queen*>(p)) squareData["type"] = "queen";
-                else if (dynamic_cast<King*>(p)) squareData["type"] = "king";
-                else squareData["type"] = "unknown";
+            if (p) {
+                sq.pieceColor = (p->getColor() == Color::WHITE) ? "white" : "black";
+                // De esta manera se puede saber que pieza es
+                if (dynamic_cast<Pawn*>(p)) sq.pieceType = "pawn";
+                else if (dynamic_cast<Rook*>(p)) sq.pieceType = "rook";
+                else if (dynamic_cast<Knight*>(p)) sq.pieceType = "knight";
+                else if (dynamic_cast<Bishop*>(p)) sq.pieceType = "bishop";
+                else if (dynamic_cast<Queen*>(p)) sq.pieceType = "queen";
+                else if (dynamic_cast<King*>(p)) {
+                    sq.pieceType = "king";
+                    sq.isInCheck = m_game.isInCheck(p->getColor());
+                }
             }
-
-            // Agregamos esta casilla a la lista plana
-            newList.append(squareData);
+            newBoard.push_back(sq);
         }
     }
-
-    // Actualizamos el caché y gritamos a QML que se redibuje
-    m_cachedBoard = newList;
-    emit boardChanged();
+    m_boardModel->setBoard(newBoard);
 }
 
+void ChessController::handleSquareClick(int row, int col) {
+    int index = getIndex(row, col);
+    Position clickedPos(row, col);
+    const Board& board = m_game.getBoard();
+    Piece* clickedPiece = board.getPieceAt(clickedPos);
 
+    // No tiene nada seleccionado aun
 
+    if (m_selectedRow == -1 && m_selectedCol == -1) {
 
+        if (clickedPiece == nullptr) return;
 
+        QString pieceColorStr = (clickedPiece->getColor() == Color::WHITE) ? "white" : "black";
+        if (pieceColorStr != m_currentTurn) return;
 
+        m_selectedRow = row;
+        m_selectedCol = col;
 
+        m_boardModel->clearSelectionsAndHighlights();
 
+        SquareData sqData = m_boardModel->getSquare(index);
+        sqData.isSelected = true;
+        m_boardModel->updateSquare(index, sqData);
 
+        // Pedimos los movimientos legales usando tu clase Game.
+        // Esto asegura que la regla de "Rey en Jaque" se respete visualmente.
+        std::vector<Move> legalMoves = m_game.getLegalMovesForPiece(clickedPos);
 
+        for (Move& move : legalMoves) {
+            // Usamos los Getters de Move y Position
+            int destIndex = getIndex(move.getTo().getRow(), move.getTo().getCol());
 
+            SquareData destData = m_boardModel->getSquare(destIndex);
+            destData.isValidMove = true;
+            m_boardModel->updateSquare(destIndex, destData);
+        }
+    }
+    // Ya se habia seleccionado alguna pieza
+    else {
+        if (m_selectedRow == row && m_selectedCol == col) {
+            m_boardModel->clearSelectionsAndHighlights();
+            m_selectedRow = -1;
+            m_selectedCol = -1;
+            return;
+        }
 
+        SquareData clickedSqData = m_boardModel->getSquare(index);
 
+        if (clickedSqData.isValidMove) {
 
+            // Usamos processMove(), que es el metodo en Game.cpp
+            // Retorna 'true' si el movimiento se encontro y se ejecuto correctamente.
+            bool moveSuccess = m_game.processMove(Position(m_selectedRow, m_selectedCol), Position(row, col));
 
+            if (moveSuccess) {
+                m_boardModel->clearSelectionsAndHighlights();
+                updateBoardState(); // Redibuja todo por si hubo capturas o enroques
 
+                // Alternamos el turno visual solo si el movimiento en el backend fue exitoso
+                m_currentTurn = (m_currentTurn == "white") ? "black" : "white";
+                emit turnChanged();
+            } else {
+                // Si processMove devuelve false (ej. juego terminado o error), solo limpiamos
+                m_boardModel->clearSelectionsAndHighlights();
+            }
+        } else {
+            m_boardModel->clearSelectionsAndHighlights();
+        }
 
+        // Siempre reiniciamos la selección al terminar la interacción
+        m_selectedRow = -1;
+        m_selectedCol = -1;
+    }
+}
 
+QString ChessController::getPieceIcon(int row, int col) const {
+    // 1. Convertimos la fila y columna en el índice plano (0 a 63)
+    int index = getIndex(row, col);
 
+    // 2. Leemos la información visual de esa casilla desde nuestro modelo
+    SquareData sq = m_boardModel->getSquare(index);
 
+    // 3. Si la casilla está vacía, devolvemos un string vacío (QML lo hará invisible)
+    if (sq.pieceType == "empty") {
+        return "";
+    }
 
+    // 4. Determinamos el prefijo del color ("w" para white, "b" para black)
+    QString colorPrefix = (sq.pieceColor == "white") ? "w" : "b";
 
-
-
-
+    // 5. Construimos y devolvemos la ruta exacta del recurso
+    // Ejemplo de resultado: "qrc:/assets/w_pawn.svg"
+    return "qrc:ui/assets/" + colorPrefix + "_" + sq.pieceType + ".svg";
+}
 
 
 

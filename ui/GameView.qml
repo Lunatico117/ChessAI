@@ -17,7 +17,6 @@ Item {
             Layout.fillHeight: true
             color: "#11161d" // Gris muy oscuro
 
-            // Separador visual de la columna
             Rectangle {
                 width: 1; height: parent.height
                 anchors.right: parent.right
@@ -36,7 +35,6 @@ Item {
                     font.bold: true
                 }
 
-                // Aquí irían tus botones del menú (Play, Analyze, etc.)
                 Rectangle {
                     width: parent.width; height: 40
                     color: "#1a2a3a" // Fondo del botón activo
@@ -60,7 +58,6 @@ Item {
             Layout.fillHeight: true
             color: "#161e27" // Un poco más claro que los paneles laterales
 
-            // Contenedor del tablero para mantenerlo siempre cuadrado
             Item {
                 width: 600
                 height: 600
@@ -79,7 +76,9 @@ Item {
                     }
                 }
 
-                // EL TABLERO FÍSICO
+                // ==========================================
+                // EL TABLERO FÍSICO (REFACTORIZADO)
+                // ==========================================
                 Rectangle {
                     id: boardUI
                     anchors.fill: parent
@@ -88,34 +87,62 @@ Item {
                     border.color: "#1f2a36"
                     border.width: 4
 
-
-                    // Variables para recordar la pieza seleccionada (-1 significa que no hay nada seleccionado)
-                    property int selectedRow: -1
-                    property int selectedCol: -1
+                    // ¡ADÍOS A LAS VARIABLES DE ESTADO EN QML!
+                    // QML ya no necesita recordar 'selectedRow' o 'selectedCol'
 
                     Grid {
-                        id: boardGrid // Le damos un nombre explícito
+                        id: boardGrid
                         anchors.fill: parent
                         rows: 8; columns: 8
 
-
                         Repeater {
-                            model: chessController.boardState
+                            // Cambiamos a tu nuevo QAbstractListModel expuesto desde C++
+                            // Asegúrate de que tu Q_PROPERTY apunte a este modelo
+                            model: chessController.boardModel
 
                             Rectangle {
                                 width: boardUI.width / 8
                                 height: boardUI.height / 8
 
-                                // Usamos nombres diferentes (rowIdx) para evitar más choques
                                 property int rowIdx: Math.floor(index / 8)
                                 property int colIdx: index % 8
 
-                                // 1. MANTENER COLOR Y OSCURECER:
-                                            property color baseColor: ((rowIdx + colIdx) % 2 === 0) ? "#ffffff" : "#1b548b"
-                                            property bool isSelected: (boardUI.selectedRow === rowIdx && boardUI.selectedCol === colIdx)
+                                // Color base de la casilla (Patrón de ajedrez)
+                                property color baseColor: ((rowIdx + colIdx) % 2 === 0) ? "#ffffff" : "#1b548b"
 
-                                            // Qt.darker(color, 1.25) hace que el color original sea un 25% más oscuro
-                                            color: isSelected ? Qt.darker(baseColor, 1.25) : baseColor
+                                // 1. SELECCIÓN DICTADA POR C++
+                                // Usamos el rol 'model.isSelected' que definiremos en C++
+                                // Prioridad: 1. Jaque (Rojo) -> 2. Seleccionada -> 3. Normal
+                                color: {
+                                    if (model.isInCheck) { // <--- Cambiado a isInCheck
+                                        return "#9FC5E8";
+                                    } else if (model.isSelected) {
+                                        return Qt.darker(baseColor, 1.25);
+                                    } else {
+                                        return baseColor;
+                                    }
+                                }
+
+                                // 2. INDICADOR DE MOVIMIENTO VÁLIDO (Bolita verde)
+                                // Si C++ dice que es legal y la casilla está vacía
+
+                                Rectangle {
+                                    anchors.centerIn: parent
+                                    width: 20; height: 20
+                                    radius: 10
+                                    color: "#073763" // Verde material design
+                                    opacity: 0.8
+                                    visible: model.isValidMove && model.pieceType === "empty"
+                                }
+
+                                // 3. INDICADOR DE CAPTURA (Borde rojo/verde si hay pieza enemiga)
+                                Rectangle {
+                                    anchors.fill: parent
+                                    color: "transparent"
+                                    border.color: "#4CAF50" // O "#ff6b6b" si prefieres rojo para capturas
+                                    border.width: 4
+                                    visible: model.isValidMove && model.pieceType !== "empty"
+                                }
 
                                 Image {
                                     anchors.fill: parent
@@ -123,41 +150,19 @@ Item {
                                     fillMode: Image.PreserveAspectFit
                                     source: chessController.getPieceIcon(rowIdx, colIdx)
 
-                                    // 1. Ocultamos la imagen si la ruta está vacía
                                     opacity: source.toString() !== "" ? 1.0 : 0.0
-                                    // 2. Le damos un tamaño más pequeño si está vacía para el efecto "Pop"
                                     scale: source.toString() !== "" ? 1.0 : 0.5
 
-                                    // 3. LA MAGIA: Animamos los cambios de opacidad y escala en 150 milisegundos
-                                    Behavior on opacity {
-                                        NumberAnimation { duration: 150 }
-                                    }
-                                    Behavior on scale {
-                                        NumberAnimation { duration: 150; easing.type: Easing.OutBack }
-                                    }
+                                    Behavior on opacity { NumberAnimation { duration: 150 } }
+                                    Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutBack } }
                                 }
 
                                 MouseArea {
                                     anchors.fill: parent
                                     onClicked: {
-                                        // ESCUDO: Si la casilla se está destruyendo, ignoramos el clic
-                                        if (!modelData) return;
-
-                                        if (boardUI.selectedRow === -1) {
-                                            if (modelData.pieceColor === chessController.currentTurn) {
-                                                boardUI.selectedRow = rowIdx;
-                                                boardUI.selectedCol = colIdx;
-                                            }
-                                        } else {
-                                            if (modelData.pieceColor === chessController.currentTurn) {
-                                                boardUI.selectedRow = rowIdx;
-                                                boardUI.selectedCol = colIdx;
-                                            } else {
-                                                chessController.attemptMove(boardUI.selectedRow, boardUI.selectedCol, rowIdx, colIdx);
-                                                boardUI.selectedRow = -1;
-                                                boardUI.selectedCol = -1;
-                                            }
-                                        }
+                                        // 4. DELEGACIÓN TOTAL A C++
+                                        // Literalmente le decimos al controlador: "Tocaron esta coordenada. Haz tu magia".
+                                        chessController.handleSquareClick(rowIdx, colIdx)
                                     }
                                 }
                             }
@@ -188,7 +193,6 @@ Item {
             Layout.fillHeight: true
             color: "#11161d"
 
-            // Separador visual
             Rectangle {
                 width: 1; height: parent.height
                 anchors.left: parent.left
@@ -202,10 +206,8 @@ Item {
 
                 Text { text: "⏱ Move History"; color: "#ffffff"; font.bold: true; font.pixelSize: 18 }
 
-                // Espacio reservado para la tabla de movimientos
                 Item { Layout.fillHeight: true; Layout.fillWidth: true }
 
-                // Botones de acción inferiores
                 Column {
                     Layout.fillWidth: true
                     spacing: 10
@@ -221,7 +223,7 @@ Item {
                             Text { text: "🤝 Tablas"; color: "#ffffff"; anchors.centerIn: parent; font.bold: true }
                         }
                         Rectangle {
-                            Layout.fillWidth: true; height: 45; radius: 8; color: "#3a2222" // Rojizo
+                            Layout.fillWidth: true; height: 45; radius: 8; color: "#3a2222"
                             Text { text: "🏳 Rendirse"; color: "#ff6b6b"; anchors.centerIn: parent; font.bold: true }
                         }
                     }

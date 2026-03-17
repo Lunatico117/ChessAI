@@ -92,3 +92,8 @@ bool Game::processMove(Position from, Position to) {
 
     return true; // Movimiento exitoso
 }
+
+
+bool Game::isInCheck(Color color) const {
+    return RuleValidator::isKingInCheck(state, color);
+}

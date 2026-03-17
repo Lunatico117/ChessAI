@@ -30,6 +30,8 @@ public:
 
     // Intenta ejecutar un movimiento directamente desde la interfaz
     bool processMove(Position from, Position to);
+
+    bool isInCheck(Color color) const;
 };
 
 #endif
