@@ -29,9 +29,13 @@ public:
     std::vector<Move> getLegalMovesForPiece(Position pos);
 
     // Intenta ejecutar un movimiento directamente desde la interfaz
-    bool processMove(Position from, Position to);
+    // Movimiento para la coronacion del peon
+    bool processMove(Position from, Position to, PromotionType promotion = PromotionType::NONE);
 
     bool isInCheck(Color color) const;
+
+    // Metodo para saber si se debe abrir el menu de coronacion
+    bool isPromotionMove(Position from, Position to) const;
 };
 
 #endif

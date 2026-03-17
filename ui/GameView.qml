@@ -77,7 +77,7 @@ Item {
                 }
 
                 // ==========================================
-                // EL TABLERO FÍSICO (REFACTORIZADO)
+                // EL TABLERO FÍSICO
                 // ==========================================
                 Rectangle {
                     id: boardUI
@@ -86,9 +86,6 @@ Item {
                     clip: true
                     border.color: "#1f2a36"
                     border.width: 4
-
-                    // ¡ADÍOS A LAS VARIABLES DE ESTADO EN QML!
-                    // QML ya no necesita recordar 'selectedRow' o 'selectedCol'
 
                     Grid {
                         id: boardGrid
@@ -130,7 +127,7 @@ Item {
                                     anchors.centerIn: parent
                                     width: 20; height: 20
                                     radius: 10
-                                    color: "#073763" // Verde material design
+                                    color: "#073763"
                                     opacity: 0.8
                                     visible: model.isValidMove && model.pieceType === "empty"
                                 }
@@ -139,7 +136,7 @@ Item {
                                 Rectangle {
                                     anchors.fill: parent
                                     color: "transparent"
-                                    border.color: "#4CAF50" // O "#ff6b6b" si prefieres rojo para capturas
+                                    border.color: "#073763"
                                     border.width: 4
                                     visible: model.isValidMove && model.pieceType !== "empty"
                                 }
@@ -231,4 +228,146 @@ Item {
             }
         }
     }
+    // ==========================================
+        // ESCUCHADOR DE SEÑALES DESDE C++
+        // ==========================================
+        Connections {
+            // IMPORTANTE: Cambia 'chessController' por el nombre exacto
+            // con el que expusiste tu controlador a QML en tu main.cpp
+            target: chessController
+
+            function onPromotionRequested() {
+                promotionPopup.open()
+            }
+        }
+
+        // ==========================================
+        // POPUP DE CORONACIÓN
+        // ==========================================
+        Popup {
+            id: promotionPopup
+            width: 320
+            height: 140
+            anchors.centerIn: parent
+            modal: true
+            focus: true
+            // Evita que el usuario cierre el menú haciendo clic afuera. ¡Debe elegir!
+            closePolicy: Popup.NoAutoClose
+            property string prefix: chessController.currentTurn === "white" ? "w" : "b"
+
+            background: Rectangle {
+                color: "#1a2a3a"
+                radius: 12
+                border.color: "#208ce8"
+                border.width: 2
+            }
+
+            Column {
+                anchors.centerIn: parent
+                spacing: 15
+
+                Text {
+                    text: "¡Peón coronado! Elige una pieza:"
+                    color: "white"
+                    font.pixelSize: 16
+                    font.bold: true
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                Row {
+                    spacing: 20
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    // 1. Botón REINA
+                    Rectangle {
+                        width: 50; height: 50; radius: 8; color: "#222d3a"
+                        border.color: hoverAreaQ.containsMouse ? "#208ce8" : "transparent"
+                        Image {
+                            // OJO: Ajusta la ruta "qrc:/images/" a la carpeta donde tengas tus SVG
+                            source: "qrc:/ui/assets/" + promotionPopup.prefix + "_queen.svg"
+                            width: 40; height: 40; anchors.centerIn: parent
+                            fillMode: Image.PreserveAspectFit
+                        }
+                        MouseArea {
+                            id: hoverAreaQ
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onClicked: {
+                                chessController.promotePendingPawn("queen")
+                                promotionPopup.close()
+                            }
+                        }
+                    }
+
+                    // 2. Botón TORRE
+                    Rectangle {
+                        width: 50; height: 50; radius: 8; color: "#222d3a"
+                        border.color: hoverAreaR.containsMouse ? "#208ce8" : "transparent"
+                        Image {
+                            // OJO: Ajusta la ruta "qrc:/images/" a la carpeta donde tengas tus SVG
+                            source: "qrc:/ui/assets/" + promotionPopup.prefix + "_rook.svg"
+                            width: 40; height: 40; anchors.centerIn: parent
+                            fillMode: Image.PreserveAspectFit
+                        }
+                        MouseArea {
+                            id: hoverAreaR
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onClicked: {
+                                chessController.promotePendingPawn("rook")
+                                promotionPopup.close()
+                            }
+                        }
+                    }
+
+                    // 3. Botón ALFIL
+                    Rectangle {
+                        width: 50; height: 50; radius: 8; color: "#222d3a"
+                        border.color: hoverAreaB.containsMouse ? "#208ce8" : "transparent"
+                        Image {
+                            // OJO: Ajusta la ruta "qrc:/images/" a la carpeta donde tengas tus SVG
+                            source: "qrc:/ui/assets/" + promotionPopup.prefix + "_bishop.svg"
+                            width: 40; height: 40; anchors.centerIn: parent
+                            fillMode: Image.PreserveAspectFit
+                        }
+                        MouseArea {
+                            id: hoverAreaB
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onClicked: {
+                                chessController.promotePendingPawn("bishop")
+                                promotionPopup.close()
+                            }
+                        }
+                    }
+
+                    // 4. Botón CABALLO
+                    Rectangle {
+                        width: 50; height: 50; radius: 8; color: "#222d3a"
+                        border.color: hoverAreaN.containsMouse ? "#208ce8" : "transparent"
+                        Image {
+                            // OJO: Ajusta la ruta "qrc:/images/" a la carpeta donde tengas tus SVG
+                            source: "qrc:/ui/assets/" + promotionPopup.prefix + "_knight.svg"
+                            width: 40; height: 40; anchors.centerIn: parent
+                            fillMode: Image.PreserveAspectFit
+                        }
+                        MouseArea {
+                            id: hoverAreaN
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onClicked: {
+                                chessController.promotePendingPawn("knight")
+                                promotionPopup.close()
+                            }
+                        }
+                    }
+                }
+            }
+        }
 }
+
+
+
+
+
+

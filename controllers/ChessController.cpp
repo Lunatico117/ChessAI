@@ -6,6 +6,7 @@
 #include "../backend/include/Bishop.hpp"
 #include "../backend/include/Queen.hpp"
 #include "../backend/include/King.hpp"
+#include "../backend/include/Move.hpp"
 #include <QDebug>
 
 ChessController::ChessController(QObject *parent)
@@ -58,7 +59,7 @@ void ChessController::handleSquareClick(int row, int col) {
     const Board& board = m_game.getBoard();
     Piece* clickedPiece = board.getPieceAt(clickedPos);
 
-    // No tiene nada seleccionado aun
+    // Caso 1: No tiene nada seleccionado aun
 
     if (m_selectedRow == -1 && m_selectedCol == -1) {
 
@@ -89,8 +90,10 @@ void ChessController::handleSquareClick(int row, int col) {
             m_boardModel->updateSquare(destIndex, destData);
         }
     }
-    // Ya se habia seleccionado alguna pieza
+
+    // Caso 2: Ya se habia seleccionado alguna pieza
     else {
+        // 1. Cancelar accion si hace clic en la misma pieza
         if (m_selectedRow == row && m_selectedCol == col) {
             m_boardModel->clearSelectionsAndHighlights();
             m_selectedRow = -1;
@@ -102,30 +105,82 @@ void ChessController::handleSquareClick(int row, int col) {
 
         if (clickedSqData.isValidMove) {
 
-            // Usamos processMove(), que es el metodo en Game.cpp
-            // Retorna 'true' si el movimiento se encontro y se ejecuto correctamente.
-            bool moveSuccess = m_game.processMove(Position(m_selectedRow, m_selectedCol), Position(row, col));
+            Position from(m_selectedRow, m_selectedCol);
+            Position to(row, col);
 
-            if (moveSuccess) {
-                m_boardModel->clearSelectionsAndHighlights();
-                updateBoardState(); // Redibuja todo por si hubo capturas o enroques
+            // Es una promocion
 
-                // Alternamos el turno visual solo si el movimiento en el backend fue exitoso
-                m_currentTurn = (m_currentTurn == "white") ? "black" : "white";
-                emit turnChanged();
+            if (m_game.isPromotionMove(from, to)) {
+
+                // Guardamos en memoria temporal
+                m_pendingFromRow = m_selectedRow;
+                m_pendingFromCol = m_selectedCol;
+                m_pendingToRow = row;
+                m_pendingToCol = col;
+
+                // Emitimos la señal para que QML abra el menu emergente
+                emit promotionRequested();
+
             } else {
-                // Si processMove devuelve false (ej. juego terminado o error), solo limpiamos
-                m_boardModel->clearSelectionsAndHighlights();
+                // Es un movimiento normal
+                bool moveSuccess = m_game.processMove(from, to);
+
+                if (moveSuccess) {
+                    m_boardModel->clearSelectionsAndHighlights();
+                    updateBoardState();
+                    m_currentTurn = (m_currentTurn == "white") ? "black" : "white";
+                    emit turnChanged();
+                } else {
+                    m_boardModel->clearSelectionsAndHighlights();
+                }
             }
         } else {
             m_boardModel->clearSelectionsAndHighlights();
         }
 
-        // Siempre reiniciamos la selección al terminar la interacción
+        // Siempre reiniciamos la seleccion al terminar la interaccion
         m_selectedRow = -1;
         m_selectedCol = -1;
     }
 }
+
+
+void ChessController::promotePendingPawn(const QString& pieceType) {
+    // Traducimos el texto que nos manda QML a nuestro Enum de C++
+    PromotionType promoType = PromotionType::QUEEN; // Valor por defecto seguro
+
+    if (pieceType == "rook") {
+        promoType = PromotionType::ROOK;
+    }
+    else if (pieceType == "bishop") {
+        promoType = PromotionType::BISHOP;
+    }
+    else if (pieceType == "knight"){
+        promoType = PromotionType::KNIGHT;
+    }
+
+    // Ejecutamos el movimiento que estaba pausado
+    bool moveSuccess = m_game.processMove(
+        Position(m_pendingFromRow, m_pendingFromCol),
+        Position(m_pendingToRow, m_pendingToCol),
+        promoType
+        );
+
+    // Si fue exitoso, limpiamos visualmente y cambiamos turno
+    if (moveSuccess) {
+        m_boardModel->clearSelectionsAndHighlights();
+        updateBoardState();
+        m_currentTurn = (m_currentTurn == "white") ? "black" : "white";
+        emit turnChanged();
+    }
+
+    // Reseteamos la memoria temporal para el futuro posibles coronaciones
+    m_pendingFromRow = -1;
+    m_pendingFromCol = -1;
+    m_pendingToRow = -1;
+    m_pendingToCol = -1;
+}
+
 
 QString ChessController::getPieceIcon(int row, int col) const {
     // 1. Convertimos la fila y columna en el índice plano (0 a 63)
@@ -134,7 +189,7 @@ QString ChessController::getPieceIcon(int row, int col) const {
     // 2. Leemos la información visual de esa casilla desde nuestro modelo
     SquareData sq = m_boardModel->getSquare(index);
 
-    // 3. Si la casilla está vacía, devolvemos un string vacío (QML lo hará invisible)
+    // 3. Si la casilla esta vacia, devolvemos un string vacío (QML lo hará invisible)
     if (sq.pieceType == "empty") {
         return "";
     }

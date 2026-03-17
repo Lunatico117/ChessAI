@@ -55,20 +55,27 @@ std::vector<Move> Game::getLegalMovesForPiece(Position pos) {
 }
 
 
-bool Game::processMove(Position from, Position to) {
+bool Game::processMove(Position from, Position to, PromotionType promotion) {
     if (gameOver) return false;
 
-    // Generamos los movimientos legales
-    std::vector<Move> legalMoves = generator.generateLegalMoves(state);
-
+    // Solo pedimos los movimientos legales de la pieza que estamos tocando
+    std::vector<Move> legalMoves = getLegalMovesForPiece(from);
     bool moveFound = false;
 
-    // Buscamos y ejecutamos directamente (sin 'const' para poder usar 'm')
     for (Move& m : legalMoves) {
-        if (m.getFrom() == from && m.getTo() == to) {
-            state.updateState(m);
-            moveFound = true;
-            break;
+        if (m.getTo() == to) { // No necesitamos comparar m.getFrom() == from porque la lista ya está filtrada
+
+            if (m.getType() == MoveType::PROMOTION) {
+                if (m.getPromotionType() == promotion) {
+                    state.updateState(m);
+                    moveFound = true;
+                    break;
+                }
+            } else {
+                state.updateState(m);
+                moveFound = true;
+                break;
+            }
         }
     }
 
@@ -96,4 +103,20 @@ bool Game::processMove(Position from, Position to) {
 
 bool Game::isInCheck(Color color) const {
     return RuleValidator::isKingInCheck(state, color);
+}
+
+
+bool Game::isPromotionMove(Position from, Position to) const {
+    Piece* p = state.getBoard().getPieceAt(from);
+    if (p == nullptr) return false;
+
+    // Llamada polimórfica: la pieza (sea la que sea) sabe cómo moverse
+    std::vector<Move> possibleMoves = p->getPossibleMoves(state, from);
+
+    for (const Move& m : possibleMoves) {
+        if (m.getTo() == to && m.getType() == MoveType::PROMOTION) {
+            return true;
+        }
+    }
+    return false;
 }
