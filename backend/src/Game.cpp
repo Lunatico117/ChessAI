@@ -90,9 +90,11 @@ bool Game::processMove(Position from, Position to, PromotionType promotion) {
 
     if (nextMoves.empty()) {
         if (RuleValidator::isKingInCheck(state, nextTurn)) {
-            std::cout << "¡JAQUE MATE!\n";
+            endReason = "Jaque Mate";
+            winnerStr = (nextTurn == Color::WHITE) ? "Negras" : "Blancas";
         } else {
-            std::cout << "¡TABLAS por Rey Ahogado!\n";
+            endReason = "Rey Ahogado";
+            winnerStr = "Empate";
         }
         gameOver = true;
     }
@@ -119,4 +121,13 @@ bool Game::isPromotionMove(Position from, Position to) const {
         }
     }
     return false;
+}
+
+
+
+void Game::resetGame() {
+    state = GameState(); // Reinicia el estado (y el tablero por dentro)
+    gameOver = false;
+    endReason = "";
+    winnerStr = "";
 }

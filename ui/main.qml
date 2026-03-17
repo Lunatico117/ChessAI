@@ -11,6 +11,6 @@ Window {
     // Carga la vista del juego que crearemos a continuación
     Loader {
         anchors.fill: parent
-        source: "GameView.qml"
+        source: "views/GameView.qml"
     }
 }

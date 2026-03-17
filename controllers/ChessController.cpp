@@ -130,6 +130,7 @@ void ChessController::handleSquareClick(int row, int col) {
                     updateBoardState();
                     m_currentTurn = (m_currentTurn == "white") ? "black" : "white";
                     emit turnChanged();
+                    checkGameOver();
                 } else {
                     m_boardModel->clearSelectionsAndHighlights();
                 }
@@ -172,6 +173,7 @@ void ChessController::promotePendingPawn(const QString& pieceType) {
         updateBoardState();
         m_currentTurn = (m_currentTurn == "white") ? "black" : "white";
         emit turnChanged();
+        checkGameOver();
     }
 
     // Reseteamos la memoria temporal para el futuro posibles coronaciones
@@ -202,9 +204,59 @@ QString ChessController::getPieceIcon(int row, int col) const {
     return "qrc:ui/assets/" + colorPrefix + "_" + sq.pieceType + ".svg";
 }
 
+void ChessController::checkGameOver() {
+    if (m_game.isGameOver()) {
+        m_isGameOver = true;
+        m_gameOverReason = QString::fromStdString(m_game.getEndReason()); // "Jaque Mate" o "Rey Ahogado"
 
+        QString winner = QString::fromStdString(m_game.getWinner());
+        m_gameOverWinner = winner == "Empate" ? "Empate mutuo" : "Ganador: " + winner;
 
+        emit gameOverStateChanged(); // Avisamos a QML
+    }
+}
 
+void ChessController::surrender() {
+    m_isGameOver = true;
+    m_gameOverReason = "Rendición";
+    QString winner = (m_currentTurn == "white") ? "Negras" : "Blancas";
+    m_gameOverWinner = "Ganador: " + winner;
 
+    emit gameOverStateChanged();
+}
 
+// Un jugador propone tablas
+void ChessController::offerDraw() {
+    // Solo emitimos la señal para que QML muestre el PopUp de pregunta
+    emit drawOffered();
+}
 
+// 2. El otro jugador acepta
+void ChessController::acceptDraw() {
+    m_isGameOver = true;
+    m_gameOverReason = "Tablas";
+    m_gameOverWinner = "Empate por acuerdo mutuo";
+
+    emit gameOverStateChanged(); // Terminamos el juego
+}
+
+// 3. El otro jugador rechaza
+void ChessController::declineDraw() {
+    // Aquí no cambiamos el estado del juego.
+    // Simplemente el juego continúa normalmente.
+    // (Opcional: En el futuro podrías emitir otra señal para mostrar un mensajito que diga "Oferta rechazada")
+}
+
+void ChessController::restartGame() {
+    m_game = Game(new HumanPlayer(Color::WHITE), new HumanPlayer(Color::BLACK));
+    m_currentTurn = "white";
+
+    // Limpiamos el estado de fin de juego
+    m_isGameOver = false;
+    m_gameOverReason = "";
+    m_gameOverWinner = "";
+
+    updateBoardState();
+    emit turnChanged();
+    emit gameOverStateChanged(); // Avisamos que el juego se reanudó
+}

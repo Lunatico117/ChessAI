@@ -4,6 +4,7 @@
 #include "GameState.hpp"
 #include "MoveGenerator.hpp"
 #include "Player.hpp"
+#include <string>
 
 class Game {
 private:
@@ -12,6 +13,8 @@ private:
     Player* whitePlayer;
     Player* blackPlayer;
     bool gameOver;
+    std::string endReason = "";
+    std::string winnerStr = "";
 
 public:
     Game(Player* white, Player* black);
@@ -36,6 +39,13 @@ public:
 
     // Metodo para saber si se debe abrir el menu de coronacion
     bool isPromotionMove(Position from, Position to) const;
+
+    bool isGameOver() const { return gameOver; }
+    std::string getEndReason() const { return endReason; }
+    std::string getWinner() const { return winnerStr; }
+
+    // Nuevo método para reiniciar la partida
+    void resetGame();
 };
 
 #endif
