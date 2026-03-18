@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Piece.hpp"
-
+#include <string>
 
 // Declaracion anticipada, en ves de incluir "GameState.hpp" para no generar dependencias circulares
 class GameState;
@@ -21,4 +21,5 @@ class Rook : public Piece{
 
         // La torre vale 5 
         int getValue() const override { return 5; }
+        std::string getTypeName() const override { return "rook"; }
     };

@@ -3,6 +3,7 @@
 #include <QAbstractListModel>
 #include <QVariant>
 #include <vector>
+#include "../backend/include/Game.hpp"
 
 // Estructura interna para representar TODO el estado visual de una casilla
 struct SquareData {
@@ -40,9 +41,15 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QHash<int, QByteArray> roleNames() const override;
 
+
+
     // Metodos para el Controller
     void setBoard(const std::vector<SquareData>& newBoard);
     void updateSquare(int index, const SquareData& data);
+
+    // Metodo para la
+    Q_INVOKABLE QString getPieceIcon(int row, int col) const;
+    void updateFromGame(const Game& game);
 
     // Limpia selecciones y bolitas de movimiento
     void clearSelectionsAndHighlights();

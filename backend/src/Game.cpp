@@ -131,3 +131,15 @@ void Game::resetGame() {
     endReason = "";
     winnerStr = "";
 }
+
+std::vector<Position> Game::getLegalDestinations(Position origin) {
+    std::vector<Position> destinations;
+    // Usamos tu funcion existente para obtener todos los movimientos completos
+    std::vector<Move> moves = getLegalMovesForPiece(origin);
+
+    // Filtramos y guardamos unicamente la posición de destino
+    for(const Move& m : moves) {
+        destinations.push_back(m.getTo());
+    }
+    return destinations;
+}

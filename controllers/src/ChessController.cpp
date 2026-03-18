@@ -1,56 +1,32 @@
-#include "ChessController.hpp"
+#include "../include/ChessController.hpp"
 #include "../backend/include/HumanPlayer.hpp"
-#include "../backend/include/Pawn.hpp"
-#include "../backend/include/Rook.hpp"
-#include "../backend/include/Knight.hpp"
-#include "../backend/include/Bishop.hpp"
-#include "../backend/include/Queen.hpp"
-#include "../backend/include/King.hpp"
-#include "../backend/include/Move.hpp"
 #include <QDebug>
 
 ChessController::ChessController(QObject *parent)
     : QObject(parent),
     m_game(new HumanPlayer(Color::WHITE), new HumanPlayer(Color::BLACK)),
-    // Esto lo que hace es que si el BoardModel se destruye entonces el m_boardModel Tambien
-    m_boardModel(new BoardModel(this))
+    m_boardModel(new BoardModel(this)),
+    m_clock(new GameClock(this)),
+    m_matchManager(new MatchManager(this)) // INICIAMOS EL ÁRBITRO
 {
     // Este metodo lee la matriz y la convierte para que QML la pueda entender
-    updateBoardState();
-}
+    m_boardModel->updateFromGame(m_game);
 
-void ChessController::updateBoardState() {
-    std::vector<SquareData> newBoard;
-    // Se reserva una lista vacia de 64 casillas
-    newBoard.reserve(64);
+    // Iniciamos el contador
+    m_clock->start(10);
 
-    // Obtenemos el tablero real del motor (Por referencia)
-    const Board& board = m_game.getBoard();
+    // 1. Si el reloj dice "Se acabó el tiempo", avisamos al árbitro para que termine el juego
+    connect(m_clock, &GameClock::timeOut, this, [this](const QString& losingColor) {
+        QString winner = (losingColor == "white") ? "Ganador: Negras" : "Ganador: Blancas";
+        m_matchManager->endMatch("Tiempo agotado", winner);
+    });
 
-    for (int row = 0; row < 8; ++row) {
-        for (int col = 0; col < 8; ++col) {
-            Position pos(row, col);
-            Piece* p = board.getPieceAt(pos);
-
-            SquareData sq;
-
-            if (p) {
-                sq.pieceColor = (p->getColor() == Color::WHITE) ? "white" : "black";
-                // De esta manera se puede saber que pieza es
-                if (dynamic_cast<Pawn*>(p)) sq.pieceType = "pawn";
-                else if (dynamic_cast<Rook*>(p)) sq.pieceType = "rook";
-                else if (dynamic_cast<Knight*>(p)) sq.pieceType = "knight";
-                else if (dynamic_cast<Bishop*>(p)) sq.pieceType = "bishop";
-                else if (dynamic_cast<Queen*>(p)) sq.pieceType = "queen";
-                else if (dynamic_cast<King*>(p)) {
-                    sq.pieceType = "king";
-                    sq.isInCheck = m_game.isInCheck(p->getColor());
-                }
-            }
-            newBoard.push_back(sq);
+    // 2. Si el árbitro declara el fin del juego (por tiempo, tablas o mate), detenemos el reloj
+    connect(m_matchManager, &MatchManager::matchEnded, this, [this]() {
+        if (m_matchManager->getIsGameOver()) {
+            m_clock->stop();
         }
-    }
-    m_boardModel->setBoard(newBoard);
+    });
 }
 
 void ChessController::handleSquareClick(int row, int col) {
@@ -79,11 +55,11 @@ void ChessController::handleSquareClick(int row, int col) {
 
         // Pedimos los movimientos legales usando tu clase Game.
         // Esto asegura que la regla de "Rey en Jaque" se respete visualmente.
-        std::vector<Move> legalMoves = m_game.getLegalMovesForPiece(clickedPos);
+        std::vector<Position> legalDestinations = m_game.getLegalDestinations(clickedPos);
 
-        for (Move& move : legalMoves) {
+        for (Position& dest : legalDestinations) {
             // Usamos los Getters de Move y Position
-            int destIndex = getIndex(move.getTo().getRow(), move.getTo().getCol());
+            int destIndex = getIndex(dest.getRow(), dest.getCol());
 
             SquareData destData = m_boardModel->getSquare(destIndex);
             destData.isValidMove = true;
@@ -127,8 +103,10 @@ void ChessController::handleSquareClick(int row, int col) {
 
                 if (moveSuccess) {
                     m_boardModel->clearSelectionsAndHighlights();
-                    updateBoardState();
+                    m_boardModel->updateFromGame(m_game);
                     m_currentTurn = (m_currentTurn == "white") ? "black" : "white";
+                    // Cambiamos el reloj cuando cambiamos el turno
+                    m_clock->switchTurn(m_currentTurn);
                     emit turnChanged();
                     checkGameOver();
                 } else {
@@ -170,7 +148,7 @@ void ChessController::promotePendingPawn(const QString& pieceType) {
     // Si fue exitoso, limpiamos visualmente y cambiamos turno
     if (moveSuccess) {
         m_boardModel->clearSelectionsAndHighlights();
-        updateBoardState();
+        m_boardModel->updateFromGame(m_game);
         m_currentTurn = (m_currentTurn == "white") ? "black" : "white";
         emit turnChanged();
         checkGameOver();
@@ -183,68 +161,31 @@ void ChessController::promotePendingPawn(const QString& pieceType) {
     m_pendingToCol = -1;
 }
 
-
-QString ChessController::getPieceIcon(int row, int col) const {
-    // 1. Convertimos la fila y columna en el índice plano (0 a 63)
-    int index = getIndex(row, col);
-
-    // 2. Leemos la información visual de esa casilla desde nuestro modelo
-    SquareData sq = m_boardModel->getSquare(index);
-
-    // 3. Si la casilla esta vacia, devolvemos un string vacío (QML lo hará invisible)
-    if (sq.pieceType == "empty") {
-        return "";
-    }
-
-    // 4. Determinamos el prefijo del color ("w" para white, "b" para black)
-    QString colorPrefix = (sq.pieceColor == "white") ? "w" : "b";
-
-    // 5. Construimos y devolvemos la ruta exacta del recurso
-    // Ejemplo de resultado: "qrc:/assets/w_pawn.svg"
-    return "qrc:ui/assets/" + colorPrefix + "_" + sq.pieceType + ".svg";
-}
-
 void ChessController::checkGameOver() {
     if (m_game.isGameOver()) {
-        m_isGameOver = true;
-        m_gameOverReason = QString::fromStdString(m_game.getEndReason()); // "Jaque Mate" o "Rey Ahogado"
+        QString reason = QString::fromStdString(m_game.getEndReason()); // "Jaque Mate" o "Rey Ahogado"
+        QString winnerStr = QString::fromStdString(m_game.getWinner());
+        QString winner = winnerStr == "Empate" ? "Empate mutuo" : "Ganador: " + winnerStr;
 
-        QString winner = QString::fromStdString(m_game.getWinner());
-        m_gameOverWinner = winner == "Empate" ? "Empate mutuo" : "Ganador: " + winner;
-
-        emit gameOverStateChanged(); // Avisamos a QML
+        // Le pasamos la información al Árbitro para que él declare el fin del juego
+        m_matchManager->endMatch(reason, winner);
     }
 }
 
 void ChessController::surrender() {
-    m_isGameOver = true;
-    m_gameOverReason = "Rendición";
-    QString winner = (m_currentTurn == "white") ? "Negras" : "Blancas";
-    m_gameOverWinner = "Ganador: " + winner;
-
-    emit gameOverStateChanged();
+    m_matchManager->surrender(m_currentTurn);
 }
 
-// Un jugador propone tablas
 void ChessController::offerDraw() {
-    // Solo emitimos la señal para que QML muestre el PopUp de pregunta
-    emit drawOffered();
+    m_matchManager->offerDraw();
 }
 
-// 2. El otro jugador acepta
 void ChessController::acceptDraw() {
-    m_isGameOver = true;
-    m_gameOverReason = "Tablas";
-    m_gameOverWinner = "Empate por acuerdo mutuo";
-
-    emit gameOverStateChanged(); // Terminamos el juego
+    m_matchManager->acceptDraw();
 }
 
-// 3. El otro jugador rechaza
 void ChessController::declineDraw() {
-    // Aquí no cambiamos el estado del juego.
-    // Simplemente el juego continúa normalmente.
-    // (Opcional: En el futuro podrías emitir otra señal para mostrar un mensajito que diga "Oferta rechazada")
+    m_matchManager->declineDraw();
 }
 
 void ChessController::restartGame() {
@@ -252,11 +193,11 @@ void ChessController::restartGame() {
     m_currentTurn = "white";
 
     // Limpiamos el estado de fin de juego
-    m_isGameOver = false;
-    m_gameOverReason = "";
-    m_gameOverWinner = "";
+    m_matchManager->reset();
 
-    updateBoardState();
+    // Reiniciamos el contador de los relojs
+    m_clock->start(10);
+
+    m_boardModel->updateFromGame(m_game);
     emit turnChanged();
-    emit gameOverStateChanged(); // Avisamos que el juego se reanudó
 }

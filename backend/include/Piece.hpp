@@ -42,4 +42,7 @@ class Piece{
 
         // Cada pieza tiene un valor distinto
         virtual int getValue() const = 0;
+
+        // Cada pieza retorna su nombre para no usar dynamic_cast
+        virtual std::string getTypeName() const = 0;
 };

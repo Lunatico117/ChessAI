@@ -38,8 +38,11 @@ set(SOURCES
         backend/src/RuleValidator.cpp
 
     # --- Controladores (Puente C++ <-> QML) ---
-        controllers/ChessController.cpp
-        controllers/BoardModel.cpp
+        controllers/src/ChessController.cpp
+        controllers/src/BoardModel.cpp
+        controllers/src/GameClock.cpp
+        controllers/src/MatchManager.cpp
+
 
         # --- Tests y Main ---
         test/Test_jaqueMatePastor.cpp
@@ -70,8 +73,11 @@ set(HEADERS
         backend/include/RuleValidator.hpp
 
         # --- Controladores ---
-        controllers/ChessController.hpp
-        controllers/BoardModel.hpp
+        controllers/include/ChessController.hpp
+        controllers/include/BoardModel.hpp
+        controllers/include/GameClock.hpp
+        controllers/include/MatchManager.hpp
+
     )
 
 # 5. Crear el ejecutable con la interfaz gráfica (WIN32 evita que salga la consola negra en Windows)

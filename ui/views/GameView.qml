@@ -41,10 +41,16 @@ Item {
     // 3. CONECTAMOS EL C++ Y LOS POPUPS
     Connections {
         target: chessController
-        function onPromotionRequested() { promotionPopup.open() }
-        function onDrawOffered() { drawOfferPopup.open() }
-    }
+        function onPromotionRequested() { promotionPopup.open()
+            }
 
+    }
+    Connections {
+        target: chessController.match
+
+        function onDrawOffered() { drawOfferPopup.open()
+        }
+    }
     PromotionPopup {
         id: promotionPopup
         anchors.centerIn: parent
@@ -54,4 +60,5 @@ Item {
         id: drawOfferPopup
         anchors.centerIn: parent
     }
+
 }

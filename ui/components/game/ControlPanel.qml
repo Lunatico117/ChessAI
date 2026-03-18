@@ -24,7 +24,7 @@ Rectangle {
         Item {
             Layout.fillWidth: true
             // Calculamos la altura automáticamente para no cortar nada
-            implicitHeight: chessController.isGameOver ? gameOverColumn.implicitHeight : activeColumn.implicitHeight
+            implicitHeight: chessController.match.isGameOver ? gameOverColumn.implicitHeight : activeColumn.implicitHeight
 
             // Botones de JUEGO ACTIVO
             Column {
@@ -32,7 +32,7 @@ Rectangle {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 spacing: 10
-                visible: !chessController.isGameOver
+                visible: !chessController.match.isGameOver
 
                 Rectangle {
                     width: parent.width; height: 45; radius: 8; color: "#222d3a"
@@ -59,7 +59,7 @@ Rectangle {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 spacing: 10
-                visible: chessController.isGameOver
+                visible: chessController.match.isGameOver
 
                 Rectangle {
                     width: parent.width; height: 45; radius: 8;

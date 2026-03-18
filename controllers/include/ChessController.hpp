@@ -3,33 +3,37 @@
 #include <QObject>
 #include "../backend/include/Game.hpp"
 #include "BoardModel.hpp"
+#include "GameClock.hpp"
+#include "MatchManager.hpp"
 
 class ChessController : public QObject {
     Q_OBJECT
     Q_PROPERTY(BoardModel* boardModel READ getBoardModel CONSTANT)
     Q_PROPERTY(QString currentTurn READ getCurrentTurn NOTIFY turnChanged)
-    // Propiedades para el fin de juego
-    Q_PROPERTY(bool isGameOver READ getIsGameOver NOTIFY gameOverStateChanged)
-    Q_PROPERTY(QString gameOverReason READ getGameOverReason NOTIFY gameOverStateChanged)
-    Q_PROPERTY(QString gameOverWinner READ getGameOverWinner NOTIFY gameOverStateChanged)
+    // Tiempo por jugador
+    Q_PROPERTY(GameClock* clock READ getClock CONSTANT)
+    // Arbitro
+    Q_PROPERTY(MatchManager* match READ getMatch CONSTANT)
+
 
 public:
     explicit ChessController(QObject *parent = nullptr);
 
+    // Getters
     BoardModel* getBoardModel() const { return m_boardModel; }
     QString getCurrentTurn() const { return m_currentTurn; }
 
-    bool getIsGameOver() const { return m_isGameOver; }
-    QString getGameOverReason() const { return m_gameOverReason; }
-    QString getGameOverWinner() const { return m_gameOverWinner; }
+    GameClock* getClock() const { return m_clock; }
+
+    MatchManager* getMatch() const { return m_matchManager; }
 
     Q_INVOKABLE void handleSquareClick(int row, int col);
-    Q_INVOKABLE QString getPieceIcon(int row, int col) const;
+
     // Este invokable se usara cuando elija la pieza para la coronacion
     Q_INVOKABLE void promotePendingPawn(const QString& pieceType);
-    // Este invokable se usara para rendirse
+
+    // Estos se usaran para el control del juego mediante el arbitro
     Q_INVOKABLE void surrender();
-    // Estos invokable se usara para las tablas
     Q_INVOKABLE void offerDraw();
     Q_INVOKABLE void acceptDraw();
     Q_INVOKABLE void declineDraw();
@@ -43,11 +47,6 @@ signals:
     // Señal para avisar que hay una coronacion
     void promotionRequested();
 
-    // Señal para la finalizacion del juego
-    void gameOverStateChanged();
-signals:
-    // Ofrecimiento de tablas
-    void drawOffered();
 
 private:
 
@@ -55,10 +54,9 @@ private:
     QString m_currentTurn = "white";
     BoardModel* m_boardModel;
 
-    // Variables de estado para el fin del juego
-    bool m_isGameOver = false;
-    QString m_gameOverReason = "";
-    QString m_gameOverWinner = "";
+    GameClock* m_clock;
+
+    MatchManager* m_matchManager;
 
     int m_selectedRow = -1;
     int m_selectedCol = -1;
@@ -70,7 +68,6 @@ private:
     int m_pendingToCol = -1;
 
     int getIndex(int row, int col) const { return row * 8 + col; }
-    void updateBoardState();
 
     void checkGameOver();
 };

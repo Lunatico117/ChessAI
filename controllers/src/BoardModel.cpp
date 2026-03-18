@@ -1,4 +1,4 @@
-#include "BoardModel.hpp"
+#include "../include/BoardModel.hpp"
 
 BoardModel::BoardModel(QObject *parent)
     : QAbstractListModel(parent)
@@ -99,3 +99,42 @@ void BoardModel::clearSelectionsAndHighlights() {
     }
 }
 
+// Funciones visuales para el tablero
+void BoardModel::updateFromGame(const Game& game) {
+    std::vector<SquareData> newBoard;
+    newBoard.reserve(64);
+
+    const Board& board = game.getBoard();
+
+    for (int row = 0; row < 8; ++row) {
+        for (int col = 0; col < 8; ++col) {
+            Position pos(row, col);
+            Piece* p = board.getPieceAt(pos);
+
+            SquareData sq;
+
+            if (p) {
+                sq.pieceColor = (p->getColor() == Color::WHITE) ? "white" : "black";
+                sq.pieceType = QString::fromStdString(p->getTypeName());
+
+                if (sq.pieceType == "king") {
+                    sq.isInCheck = game.isInCheck(p->getColor());
+                }
+            }
+            newBoard.push_back(sq);
+        }
+    }
+    setBoard(newBoard);
+}
+
+QString BoardModel::getPieceIcon(int row, int col) const {
+    int index = (row * 8) + col;
+    SquareData sq = getSquare(index);
+
+    if (sq.pieceType == "empty") {
+        return "";
+    }
+
+    QString colorPrefix = (sq.pieceColor == "white") ? "w" : "b";
+    return "qrc:ui/assets/" + colorPrefix + "_" + sq.pieceType + ".svg";
+}

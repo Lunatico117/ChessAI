@@ -23,10 +23,10 @@ Rectangle {
             anchors.bottom: boardUI.top
             anchors.bottomMargin: 15
             width: parent.width
-            Text { text: "🤖 CHESSAI BOT"; color: "#ffffff"; font.bold: true; Layout.fillWidth: true }
+            Text { text: "Player 2"; color: "#ffffff"; font.bold: true; Layout.fillWidth: true }
             Rectangle {
                 width: 80; height: 35; radius: 17; color: "#1f2a36"
-                Text { text: "05:00"; color: "#ffffff"; anchors.centerIn: parent; font.pixelSize: 16 }
+                Text { text: chessController.clock.blackTimeText; color: "#ffffff"; anchors.centerIn: parent; font.pixelSize: 16 }
             }
         }
 
@@ -67,7 +67,7 @@ Rectangle {
 
                         Image {
                             anchors.fill: parent; anchors.margins: 5; fillMode: Image.PreserveAspectFit
-                            source: chessController.getPieceIcon(rowIdx, colIdx)
+                            source: chessController.boardModel.getPieceIcon(rowIdx, colIdx)
                             opacity: source.toString() !== "" ? 1.0 : 0.0
                             scale: source.toString() !== "" ? 1.0 : 0.5
                             Behavior on opacity { NumberAnimation { duration: 150 } }
@@ -76,7 +76,7 @@ Rectangle {
 
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: if (!chessController.isGameOver) chessController.handleSquareClick(rowIdx, colIdx)
+                            onClicked: if (!chessController.match.isGameOver) chessController.handleSquareClick(rowIdx, colIdx)
                         }
                     }
                 }
@@ -86,7 +86,7 @@ Rectangle {
             Rectangle {
                 anchors.fill: parent
                 color: "#B3000000" // Fondo oscuro semi-transparente
-                visible: chessController.isGameOver && !chessController.isAnalysisMode
+                visible: chessController.match.isGameOver && !chessController.isAnalysisMode
                 z: 10 // Lo pone por encima de las fichas
                 radius: 6 // Para que coincida con los bordes internos del tablero
 
@@ -95,13 +95,13 @@ Rectangle {
                     spacing: 10
 
                     Text {
-                        text: chessController.gameOverReason === "Tablas" ? "🤝" : "👑";
+                        text: chessController.match.gameOverReason === "Tablas" ? "🤝" : "👑";
                         color: "white";
                         font.pixelSize: 45
                         Layout.alignment: Qt.AlignHCenter
                     }
                     Text {
-                        text: chessController.gameOverReason.toUpperCase();
+                        text: chessController.match.gameOverReason.toUpperCase();
                         color: "#208ce8";
                         font.pixelSize: 40;
                         font.bold: true;
@@ -110,7 +110,7 @@ Rectangle {
                         Layout.alignment: Qt.AlignHCenter
                     }
 
-                    Text { text: chessController.gameOverWinner;
+                    Text { text: chessController.match.gameOverWinner;
                         color: "white";
                         font.pixelSize: 22;
                         font.bold: true;
@@ -124,10 +124,10 @@ Rectangle {
             anchors.top: boardUI.bottom
             anchors.topMargin: 15
             width: parent.width
-            Text { text: "👤 YOU"; color: "#ffffff"; font.bold: true; Layout.fillWidth: true }
+            Text { text: "Player 1"; color: "#ffffff"; font.bold: true; Layout.fillWidth: true }
             Rectangle {
                 width: 80; height: 35; radius: 17; color: "#208ce8"
-                Text { text: "04:42"; color: "#ffffff"; anchors.centerIn: parent; font.bold: true; font.pixelSize: 16 }
+                Text { text: chessController.clock.whiteTimeText; color: "#ffffff"; anchors.centerIn: parent; font.bold: true; font.pixelSize: 16 }
             }
         }
     }

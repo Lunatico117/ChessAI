@@ -7,9 +7,7 @@
 // Permite exponer objetos, variables y funciones de C++ para que sean accesibles directamente en la interfaz QML,
 // definiendo el alcance (scope) de las propiedades en una jerarquia
 #include <QQmlContext>
-
-#include "../controllers/ChessController.hpp"
-
+#include "../controllers/include/ChessController.hpp"
 
 int main(int argc, char *argv[]) {
     // Iniciamos la aplicacion grafica
