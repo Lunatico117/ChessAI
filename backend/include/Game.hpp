@@ -16,6 +16,12 @@ private:
     bool gameOver;
     std::string endReason = "";
     std::string winnerStr = "";
+    // El historico de movimientos
+    std::vector<Move> moveHistory;
+
+    // Indice 0 = Blancas, Indice 1 = Negras
+    // Indica si el jugador ya gasto su "Deshacer" en este turno
+    bool hasUsedUndo[2];
 
 public:
     Game(Player* white, Player* black);
@@ -47,8 +53,12 @@ public:
     std::string getEndReason() const { return endReason; }
     std::string getWinner() const { return winnerStr; }
 
-    // Nuevo método para reiniciar la partida
+    // Nuevo metodo para reiniciar la partida
     void resetGame();
+
+    // Este metodo solicita el deshacer
+    bool undoLastMove();
+
 };
 
 #endif

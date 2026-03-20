@@ -32,6 +32,9 @@ public:
     // Este invokable se usara cuando elija la pieza para la coronacion
     Q_INVOKABLE void promotePendingPawn(const QString& pieceType);
 
+    // Este se usara para deshacer un movimiento
+    Q_INVOKABLE void requestUndo();
+
     // Estos se usaran para el control del juego mediante el arbitro
     Q_INVOKABLE void surrender();
     Q_INVOKABLE void offerDraw();
@@ -46,6 +49,8 @@ signals:
     void turnChanged();
     // Señal para avisar que hay una coronacion
     void promotionRequested();
+
+    void undoSuccessful();
 
 
 private:

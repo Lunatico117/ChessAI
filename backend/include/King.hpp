@@ -24,6 +24,7 @@ class King : public Piece{
         PieceType getType() const override {
             return PieceType::KING;
         }
+
         std::string getTypeName() const override { return "king"; }
 
 };

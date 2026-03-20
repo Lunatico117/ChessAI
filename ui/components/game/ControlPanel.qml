@@ -37,6 +37,10 @@ Rectangle {
                 Rectangle {
                     width: parent.width; height: 45; radius: 8; color: "#222d3a"
                     Text { text: "↩ Deshacer"; color: "#ffffff"; anchors.centerIn: parent; font.bold: true }
+                    MouseArea {
+                            anchors.fill: parent;
+                            onClicked: chessController.requestUndo()
+                        }
                 }
                 RowLayout {
                     width: parent.width; spacing: 10

@@ -201,3 +201,31 @@ void ChessController::restartGame() {
     m_boardModel->updateFromGame(m_game);
     emit turnChanged();
 }
+
+void ChessController::requestUndo() {
+    // Le pedimos al Backend que intente deshacer
+    if (m_game.undoLastMove()) {
+
+        // Revertimos la variable de turno local
+        m_currentTurn = (m_currentTurn == "white") ? "black" : "white";
+
+        // Le decimos al reloj que vuelva a cambiar de lado
+        m_clock->switchTurn(m_currentTurn);
+
+        // Limpiamos cualquier clic fantasma que el usuario haya dejado a medias
+        m_selectedRow = -1;
+        m_selectedCol = -1;
+        m_boardModel->clearSelectionsAndHighlights();
+
+        // Sincronizamos la matriz visual con el backend
+        m_boardModel->updateFromGame(m_game);
+
+        // Notificamos a QML
+        emit turnChanged();
+        emit undoSuccessful();
+
+        qDebug() << "Movimiento deshecho con éxito.";
+    } else {
+        qDebug() << "No se puede deshacer: Historial vacío o límite por turno alcanzado.";
+    }
+}
