@@ -3,6 +3,7 @@
 
 #include "GameState.hpp"
 #include "MoveGenerator.hpp"
+#include "GameLogger.hpp"
 #include "Player.hpp"
 #include <string>
 
@@ -31,15 +32,13 @@ public:
     // Devuelve los movimientos legales completos de una sola pieza (uso interno)
     std::vector<Move> getLegalMovesForPiece(Position pos);
 
-    // NUEVO: Devuelve SOLO las coordenadas destino de una pieza (Para la Interfaz Gráfica)
+    // Devuelve SOLO las coordenadas destino de una pieza (Para la Interfaz Gráfica)
     std::vector<Position> getLegalDestinations(Position origin);
 
     // Intenta ejecutar un movimiento directamente desde la interfaz
     // Movimiento para la coronacion del peon
     bool processMove(Position from, Position to, PromotionType promotion = PromotionType::NONE);
-
     bool isInCheck(Color color) const;
-
 
     // Metodo para saber si se debe abrir el menu de coronacion
     bool isPromotionMove(Position from, Position to) const;

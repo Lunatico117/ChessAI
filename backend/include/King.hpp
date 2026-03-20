@@ -19,7 +19,11 @@ class King : public Piece{
         // estoy sobreescribiendo exactamente el metodo que me pidio mi clase padre".
         std::vector<Move> getPossibleMoves(const GameState& state, const Position& currentPos) const override ;
 
-        int getValue() const override {return 100;}
+        int getValue() const override {return 1000;}
+
+        PieceType getType() const override {
+            return PieceType::KING;
+        }
         std::string getTypeName() const override { return "king"; }
 
 };

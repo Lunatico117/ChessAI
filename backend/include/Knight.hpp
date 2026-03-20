@@ -21,5 +21,10 @@ class Knight : public Piece{
 
         // El caballo vale 3
         int getValue() const override { return 3; }
+
+        PieceType getType() const override {
+            return PieceType::KNIGHT;
+        }
+
         std::string getTypeName() const override { return "knight"; }
 };

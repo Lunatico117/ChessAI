@@ -6,9 +6,20 @@
 #include "../include/Queen.hpp"
 #include "../include/King.hpp"
 
-Board::Board(){
+Board::Board() : whiteMaterial(0), blackMaterial(0){
     // Con esto instanciamos el arreglo grid[8][8] y todos los unique_ptr estan en null 
     }
+
+
+
+int Board::getWhiteMaterial() const
+    { return whiteMaterial;
+}
+
+int Board::getBlackMaterial() const {
+    return blackMaterial;
+}
+
 
 // Verifica si la posicion este dentro del tablero 
 bool Board::isValidPosition(const Position& pos) const {
@@ -44,6 +55,17 @@ void Board::movePiece(Move& m){
 
     // Si hay una pieza enemiga en la casilla el objeto Move la captura para que no se destruya de inmediato 
     if (grid[to.getRow()][to.getCol()] != nullptr){
+        // ¡IMPORTANTE! Leemos la pieza ANTES de hacer el std::move
+        Piece* capturedPiece = grid[to.getRow()][to.getCol()].get();
+
+        // ACTUALIZACIÓN INCREMENTAL: Restar el material al jugador que pierde la pieza
+        if (capturedPiece->getColor() == Color::WHITE) {
+            whiteMaterial -= capturedPiece->getValue();
+        } else {
+            blackMaterial -= capturedPiece->getValue();
+        }
+
+        // Ahora sí, el objeto Move la captura
         m.setCapturedPiece(std::move(grid[to.getRow()][to.getCol()]));
     }
 
@@ -59,7 +81,11 @@ void Board::movePiece(Move& m){
         case MoveType::PROMOTION:{
             // Obtenemos el color de la pieza del peon
             Color pieceColor = grid[from.getRow()][from.getCol()] -> getColor();
+            int pawnValue = grid[from.getRow()][from.getCol()]->getValue(); // Será 100
 
+            // ACTUALIZACIÓN INCREMENTAL: El peón va a desaparecer, restamos su valor
+            if (pieceColor == Color::WHITE) whiteMaterial -= pawnValue;
+            else blackMaterial -= pawnValue;
             // Colocamos la nueva pieza pero dependiendo del tipo de coronacion
 
             switch (m.getPromotionType()) {
@@ -76,6 +102,11 @@ void Board::movePiece(Move& m){
                 default:
                     break;
                 }
+                // ACTUALIZACIÓN INCREMENTAL: Sumamos el valor de la nueva súper pieza (ej. +900)
+                int promotedValue = grid[to.getRow()][to.getCol()]->getValue();
+                if (pieceColor == Color::WHITE) whiteMaterial += promotedValue;
+                else blackMaterial += promotedValue;
+
             // Vaciamos la casilla de origen (el peon desaparece)
             grid[from.getRow()][from.getCol()] = nullptr;
             break;
@@ -84,6 +115,15 @@ void Board::movePiece(Move& m){
         case MoveType::EN_PASSANT: {
             // Movemos el peon que va a capturar a la casilla en diagonal
             grid[to.getRow()][to.getCol()] = std::move(grid[from.getRow()][from.getCol()]);
+
+            // El peón capturado NO estaba en 'to', estaba al lado de 'from'
+            Piece* capturedPawn = grid[from.getRow()][to.getCol()].get();
+
+            if (capturedPawn != nullptr) {
+                // ACTUALIZACIÓN INCREMENTAL
+                if (capturedPawn->getColor() == Color::WHITE) whiteMaterial -= capturedPawn->getValue();
+                else blackMaterial -= capturedPawn->getValue();
+            }
 
             // Capturamos la pieza que estaba al lado, es decir en la misma fila pero en la columna de la diagonal
             m.setCapturedPiece(std::move(grid[from.getRow()][to.getCol()]));
@@ -124,9 +164,16 @@ void Board::undoPiece(Move& m){
     }
 
     case MoveType::PROMOTION:{
+        // Obtenemos la pieza antes de destruirla para restar su valor
+        Piece* promotedPiece = grid[to.getRow()][to.getCol()].get();
         // Obtenemos el color de la pieza del peon
         Color pieceColor = grid[to.getRow()][to.getCol()] -> getColor();
 
+        int promotedValue = promotedPiece->getValue(); // Ej: 900 (Reina)
+
+        // ACTUALIZACIÓN INCREMENTAL: Restamos la súper pieza que va a desaparecer
+        if (pieceColor == Color::WHITE) whiteMaterial -= promotedValue;
+        else blackMaterial -= promotedValue;
 
         // Colocamos la nueva pieza pero dependiendo del tipo de coronacion
         grid[from.getRow()][from.getCol()] = std::make_unique<Pawn>(pieceColor);
@@ -161,12 +208,21 @@ void Board::undoPiece(Move& m){
 
     // ReColocamos la pieza capturada en la casilla correspondiente 
     if (m.isCapture()){
+        std::unique_ptr<Piece> revivedPiece = m.releaseCapturedPiece();
+
+        if (revivedPiece->getColor() == Color::WHITE) {
+            whiteMaterial += revivedPiece->getValue();
+        } else {
+            blackMaterial += revivedPiece->getValue();
+        }
+
+        // La re-colocamos en el tablero
         if (m.getType() == MoveType::EN_PASSANT) {
             // Se restaura en otra casilla distinta a la que llego
-            grid[from.getRow()][to.getCol()] = m.releaseCapturedPiece();
+            grid[from.getRow()][to.getCol()] = std::move(revivedPiece);
         } else {
             // Captura normal o promocion
-            grid[to.getRow()][to.getCol()] = m.releaseCapturedPiece();
+            grid[to.getRow()][to.getCol()] = std::move(revivedPiece);
         }
     }
 }
@@ -174,10 +230,17 @@ void Board::undoPiece(Move& m){
 
 
 // Coloca una nueva pieza para coronar un peon o para iniciar el juego
-void Board::placePiece(const Position& pos, std::unique_ptr<Piece> piece){
-    if(isValidPosition(pos)){
-        grid[pos.getRow()][pos.getCol()] = std::move(piece);
+void Board::placePiece(const Position& pos, std::unique_ptr<Piece> piece) {
+    if (piece != nullptr) {
+        // ACTUALIZACIÓN INCREMENTAL: Sumar material
+        if (piece->getColor() == Color::WHITE) {
+            whiteMaterial += piece->getValue();
+        } else {
+            blackMaterial += piece->getValue();
+        }
     }
+    // Tu código original para poner la pieza en el grid
+    grid[pos.getRow()][pos.getCol()] = std::move(piece);
 }
 
 

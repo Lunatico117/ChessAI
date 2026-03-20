@@ -34,6 +34,9 @@ class Move
         MoveType type;
         PromotionType promotionType;
 
+        // Puntaje heurístico temporal usado para ordenar los movimientos en el Minimax
+        int sortScore;
+
     public:
         //Constructor
         Move(Position f, Position t,
@@ -60,6 +63,9 @@ class Move
         MoveType getType() const;
         PromotionType getPromotionType() const;
 
+        // Esto se añade para en un futuro usarse en el algoritmo Minimax Poda Alpha-Beta
+        int getSortScore() const;
+        void setSortScore(int score);
 };
 
 

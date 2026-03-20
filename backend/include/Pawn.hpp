@@ -22,6 +22,9 @@ class Pawn : public Piece{
 
         // El peon vale 1
         int getValue() const override { return 1; }
+        PieceType getType() const override {
+            return PieceType::PAWN;
+        }
         // Nombre del peon
         std::string getTypeName() const override { return "pawn"; }
 };

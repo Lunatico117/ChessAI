@@ -20,5 +20,8 @@ class Queen : public Piece{
         std::vector<Move> getPossibleMoves(const GameState& state, const Position& currentPos) const override ;
         // La Dama vale 9
         int getValue() const override { return 9; }
+        PieceType getType() const override {
+            return PieceType::QUEEN;
+        }
         std::string getTypeName() const override { return "queen"; }
 };

@@ -21,5 +21,8 @@ class Rook : public Piece{
 
         // La torre vale 5 
         int getValue() const override { return 5; }
+        PieceType getType() const override {
+            return PieceType::ROOK;
+        }
         std::string getTypeName() const override { return "rook"; }
     };

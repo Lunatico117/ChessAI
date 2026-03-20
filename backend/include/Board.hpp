@@ -13,11 +13,17 @@ class Board
         // Se usa Piece para guardar las fichas y si esta vacia sera nulo
 
         std::unique_ptr<Piece> grid[8][8];
+        int whiteMaterial;
+        int blackMaterial;
 
 
     public:
         // Constructor
         Board();
+
+        // Getters para que la IA los lea rapidamente
+        int getWhiteMaterial() const;
+        int getBlackMaterial() const;
 
         // Metodos de consulta
         bool isValidPosition (const Position& pos) const;

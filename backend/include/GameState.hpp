@@ -2,7 +2,7 @@
 
 #include "Board.hpp"
 #include "Move.hpp"
-#include <stack>
+#include <vector>
 
 enum  class CastleSide {
     KING_SIDE,
@@ -17,6 +17,8 @@ struct StateInfo
     bool bCastleK; // blackCanCastleKingSide
     bool bCastleQ; // blackCanCastleQueenSide
     Position enPassantTarget;
+    int halfMoveClock;   // Regla de los 50 movimientos
+    uint64_t zobristKey; // Para un futuro usar la tabla de trasposiciones
 };
 
 
@@ -40,9 +42,11 @@ class GameState {
         Position whiteKingPos;
         Position blackKingPos;
 
+        int halfMoveClock;
+        uint64_t zobristKey;
 
-        // Es el historial de reglas para tener en cuenta cuando se realiza un Undo
-        std::stack<StateInfo> stateHistory;
+        // Cambiamos stack por vector (se comporta igual usando push_back y pop_back)
+        std::vector<StateInfo> stateHistory;
 
         // Se detectan los movimientos del rey o la torre para cambiar el estado del enroque 
         void updateCastlingRights(Move& m);
@@ -63,9 +67,13 @@ class GameState {
 
         // Retorna el turno actual
         Color getCurrentTurn () const;
-
-
     // Metodos inline para acceso en O(1)
+
+        // Getter para el reloj de 50 movimientos
+        int getHalfMoveClock() const { return halfMoveClock; }
+
+
+
         // Es decir como la funcion es demasiado corta se deja en el hpp, lo cual mejora la optimizacion
         // Devuelve la posicion del rey
         Position getKingPosition(Color color) const {

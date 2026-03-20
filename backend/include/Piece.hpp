@@ -17,6 +17,14 @@ enum class Color {
     BLACK
 };
 
+enum class PieceType {
+    PAWN,
+    KNIGHT,
+    BISHOP,
+    ROOK,
+    QUEEN,
+    KING
+};
 
 class Piece{
     // Se protege y no se priva para que las clases hijas lo lean
@@ -43,6 +51,10 @@ class Piece{
         // Cada pieza tiene un valor distinto
         virtual int getValue() const = 0;
 
+        // Se usa para la IA
+        virtual PieceType getType() const = 0;
+
+        // Se usa para el tablero
         // Cada pieza retorna su nombre para no usar dynamic_cast
         virtual std::string getTypeName() const = 0;
 };

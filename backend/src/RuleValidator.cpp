@@ -40,7 +40,7 @@ bool RuleValidator::isSquareAttacked(const GameState& state, const Position& tar
         // Revisamos la diagonal izquierda
         if (targetCol - 1 >= 0) {
             Piece* p = board.getPieceAt(Position(pawnAttackRow, targetCol - 1));
-            if (p != nullptr && p->getColor() == enemyColor && dynamic_cast<Pawn*>(p) != nullptr){
+            if (p != nullptr && p->getColor() == enemyColor && p->getType() == PieceType::PAWN){
                 return true;
             }
         }
@@ -48,7 +48,7 @@ bool RuleValidator::isSquareAttacked(const GameState& state, const Position& tar
         // Revisamos la diagonal derecha
         if (targetCol + 1 < 8) {
             Piece* p = board.getPieceAt(Position(pawnAttackRow, targetCol + 1));
-            if (p != nullptr && p->getColor() == enemyColor && dynamic_cast<Pawn*>(p) != nullptr){
+            if (p != nullptr && p->getColor() == enemyColor && p->getType() == PieceType::PAWN){
                 return true;
             }
         }
@@ -71,7 +71,7 @@ bool RuleValidator::isSquareAttacked(const GameState& state, const Position& tar
             Piece* p = board.getPieceAt(Position(checkRow, checkCol));
             if (p != nullptr) {
                 // Si chocamos contra una Torre o Reina enemiga, nos están atacando
-                if (p->getColor() == enemyColor && (dynamic_cast<Rook*>(p) != nullptr || dynamic_cast<Queen*>(p) != nullptr)) {
+                if (p->getColor() == enemyColor && (p->getType() == PieceType::ROOK || p->getType() == PieceType::QUEEN)) {
                     return true;
                 }
                 break; // Si chocamos contra cualquier OTRA pieza se detiene "el rayo"
@@ -93,7 +93,7 @@ bool RuleValidator::isSquareAttacked(const GameState& state, const Position& tar
             // Verifica la casilla
             Piece* p = board.getPieceAt(Position(checkRow, checkCol));
             if (p != nullptr) {
-                if (p->getColor() == enemyColor && (dynamic_cast<Bishop*>(p) != nullptr || dynamic_cast<Queen*>(p) != nullptr)) {
+                if (p->getColor() == enemyColor && (p->getType() == PieceType::BISHOP || p->getType() == PieceType::QUEEN)) {
                     return true;
                 }
                 break; // Si chocamos contra cualquier OTRA pieza se detiene "el rayo"
@@ -110,7 +110,7 @@ bool RuleValidator::isSquareAttacked(const GameState& state, const Position& tar
 
         if (checkRow >= 0 && checkRow < 8 && checkCol >= 0 && checkCol < 8) {
             Piece* p = board.getPieceAt(Position(checkRow, checkCol));
-            if (p != nullptr && p->getColor() == enemyColor && dynamic_cast<King*>(p) != nullptr) {
+            if (p != nullptr && p->getColor() == enemyColor && p->getType() == PieceType::KING) {
                 return true;
             }
         }
@@ -125,7 +125,7 @@ bool RuleValidator::isSquareAttacked(const GameState& state, const Position& tar
 
         if (checkRow >= 0 && checkRow < 8 && checkCol >= 0 && checkCol < 8) { // Validar bordes
             Piece* p = board.getPieceAt(Position(checkRow, checkCol));
-            if (p != nullptr && p->getColor() == enemyColor && dynamic_cast<Knight*>(p) != nullptr) {
+            if (p != nullptr && p->getColor() == enemyColor && p->getType() == PieceType::KNIGHT) {
                 return true;
             }
         }

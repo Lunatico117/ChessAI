@@ -22,5 +22,9 @@ class Bishop : public Piece{
 
         // El alfil vale 3
         int getValue() const override { return 3; }
+
+        PieceType getType() const override {
+            return PieceType::BISHOP;
+        }
         std::string getTypeName() const override { return "bishop"; }
 };

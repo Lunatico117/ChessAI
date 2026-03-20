@@ -3,7 +3,7 @@
 
 // Implementacion del Constructor usando listas de inicializacion (mas rapido en C++)
 Move::Move(Position f, Position t, MoveType mt, PromotionType pt)
-    : from(f), to(t), type(mt), promotionType(pt), capturedPiece(nullptr) {
+    : from(f), to(t), type(mt), promotionType(pt), capturedPiece(nullptr), sortScore(0) {
 }
 
 // Implementacion de los Getters
@@ -35,4 +35,12 @@ MoveType Move::getType() const {
 
 PromotionType Move::getPromotionType() const {
     return promotionType;
+}
+
+int Move::getSortScore() const {
+    return sortScore;
+}
+
+void Move::setSortScore(int score) {
+    sortScore = score;
 }
