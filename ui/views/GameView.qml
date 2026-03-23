@@ -10,12 +10,6 @@ Item {
     id: rootView
     anchors.fill: parent
 
-    FontLoader {
-        id: titulos
-        // Ojo: Asegúrate de que esta ruta coincida con cómo tienes declarados tus assets
-        source: "qrc:/ui/assets/fonts/GravitasOne-Regular.ttf"
-    }
-
     RowLayout {
         anchors.fill: parent
         spacing: 0
@@ -24,7 +18,6 @@ Item {
         SidebarMenu {
             Layout.preferredWidth: 240
             Layout.fillHeight: true
-            titleFont: titulos.name
         }
 
         ChessBoardUI {

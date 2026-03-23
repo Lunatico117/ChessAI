@@ -3,12 +3,6 @@ import QtQuick.Layouts
 
 Rectangle {
     id: root
-    FontLoader {
-        id: titulos
-        // Ojo: Asegúrate de que esta ruta coincida con cómo tienes declarados tus assets
-        source: "qrc:/ui/assets/fonts/GravitasOne-Regular.ttf"
-    }
-
     color: "#161e27"
 
 
@@ -23,10 +17,25 @@ Rectangle {
             anchors.bottom: boardUI.top
             anchors.bottomMargin: 15
             width: parent.width
-            Text { text: "Player 2"; color: "#ffffff"; font.bold: true; Layout.fillWidth: true }
+            Text {
+                text: "Player 2";
+                color: "#ffffff";
+                font.family: "Rajdhani";
+                font.weight: chessController.currentTurn === "black" ? Font.Bold : Font.Medium;
+                opacity: chessController.currentTurn === "black" ? 1.0 : 0.5
+                font.pixelSize: 25;
+                Layout.fillWidth: true }
+
             Rectangle {
                 width: 80; height: 35; radius: 17; color: "#1f2a36"
-                Text { text: chessController.clock.blackTimeText; color: "#ffffff"; anchors.centerIn: parent; font.pixelSize: 16 }
+                Text {
+                    text: chessController.clock.blackTimeText;
+                    color: "#ffffff";
+                    font.family: "Rajdhani";
+                    font.weight: chessController.currentTurn === "black" ? Font.Bold : Font.Medium;
+                    opacity: chessController.currentTurn === "white" ? 1.0 : 0.5
+                    anchors.centerIn: parent;
+                    font.pixelSize: 20 }
             }
         }
 
@@ -103,17 +112,18 @@ Rectangle {
                     Text {
                         text: chessController.match.gameOverReason.toUpperCase();
                         color: "#208ce8";
-                        font.pixelSize: 40;
-                        font.bold: true;
-                        font.family: titulos.name
+                        font.pixelSize: 45;
+                        font.family: "Gravitas One";
+                        font.weight: Font.Bold;
                         font.letterSpacing: 2
                         Layout.alignment: Qt.AlignHCenter
                     }
 
                     Text { text: chessController.match.gameOverWinner;
                         color: "white";
-                        font.pixelSize: 22;
-                        font.bold: true;
+                        font.pixelSize: 35;
+                        font.family: "Rajdhani";
+                        font.weight: Font.SemiBold;
                         Layout.alignment: Qt.AlignHCenter }
                 }
             }
@@ -124,10 +134,24 @@ Rectangle {
             anchors.top: boardUI.bottom
             anchors.topMargin: 15
             width: parent.width
-            Text { text: "Player 1"; color: "#ffffff"; font.bold: true; Layout.fillWidth: true }
+            Text {
+                text: "Player 1";
+                color: "#ffffff";
+                font.family: "Rajdhani";
+                font.weight: chessController.currentTurn === "white" ? Font.Bold : Font.Medium;
+                opacity: chessController.currentTurn === "white" ? 1.0 : 0.5
+                font.pixelSize: 25;
+                Layout.fillWidth: true }
             Rectangle {
                 width: 80; height: 35; radius: 17; color: "#208ce8"
-                Text { text: chessController.clock.whiteTimeText; color: "#ffffff"; anchors.centerIn: parent; font.bold: true; font.pixelSize: 16 }
+                Text {
+                    text: chessController.clock.whiteTimeText;
+                    color: "#ffffff";
+                    font.family: "Rajdhani";
+                    font.weight: chessController.currentTurn === "white" ? Font.Bold : Font.Medium;
+                    opacity: chessController.currentTurn === "white" ? 1.0 : 0.5
+                    anchors.centerIn: parent;
+                    font.pixelSize: 20 }
             }
         }
     }

@@ -5,6 +5,7 @@
 #include "BoardModel.hpp"
 #include "GameClock.hpp"
 #include "MatchManager.hpp"
+#include "GameLogger.hpp"
 
 class ChessController : public QObject {
     Q_OBJECT
@@ -14,6 +15,7 @@ class ChessController : public QObject {
     Q_PROPERTY(GameClock* clock READ getClock CONSTANT)
     // Arbitro
     Q_PROPERTY(MatchManager* match READ getMatch CONSTANT)
+    Q_PROPERTY(GameLogger* logger READ getLogger CONSTANT)
 
 
 public:
@@ -26,6 +28,8 @@ public:
     GameClock* getClock() const { return m_clock; }
 
     MatchManager* getMatch() const { return m_matchManager; }
+
+    GameLogger* getLogger() const { return m_logger; }
 
     Q_INVOKABLE void handleSquareClick(int row, int col);
 
@@ -62,6 +66,8 @@ private:
     GameClock* m_clock;
 
     MatchManager* m_matchManager;
+
+    GameLogger* m_logger;
 
     int m_selectedRow = -1;
     int m_selectedCol = -1;

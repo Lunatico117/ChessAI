@@ -3,7 +3,6 @@
 
 #include "GameState.hpp"
 #include "MoveGenerator.hpp"
-#include "GameLogger.hpp"
 #include "Player.hpp"
 #include <string>
 
@@ -45,6 +44,11 @@ public:
     // Movimiento para la coronacion del peon
     bool processMove(Position from, Position to, PromotionType promotion = PromotionType::NONE);
     bool isInCheck(Color color) const;
+
+    // Con esto se sabe que tipo de movimiento es especial en el controlador y podemos ajustar la notacion algebraica segun esto
+    bool isKingsideCastle(Position from, Position to);
+    bool isQueensideCastle(Position from, Position to);
+    bool isEnPassant(Position from, Position to);
 
     // Metodo para saber si se debe abrir el menu de coronacion
     bool isPromotionMove(Position from, Position to) const;

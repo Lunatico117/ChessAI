@@ -1,6 +1,7 @@
 // Importa la clase base en Qt para aplicaciones GUI (interfaz grfica de usuario) sin widgets tradicionales
 #include <QGuiApplication>
-
+// Con esto podemos declarar las fuentes desde aca y usarlas en todo el qml
+#include <QFontDatabase>
 // Importa la clase necesaria para cargar y gestionar aplicaciones basadas en QML/Qt Quick
 #include <QQmlApplicationEngine>
 
@@ -12,6 +13,18 @@
 int main(int argc, char *argv[]) {
     // Iniciamos la aplicacion grafica
     QGuiApplication app(argc, argv);
+
+    // Rajdhani
+    QFontDatabase::addApplicationFont(":/ui/assets/fonts/Rajdhani/Rajdhani-Regular.ttf");
+    QFontDatabase::addApplicationFont(":/ui/assets/fonts/Rajdhani/Rajdhani-Medium.ttf");
+    QFontDatabase::addApplicationFont(":/ui/assets/fonts/Rajdhani/Rajdhani-SemiBold.ttf");
+    QFontDatabase::addApplicationFont(":/ui/assets/fonts/Rajdhani/Rajdhani-Bold.ttf");
+
+    // Open Sans (variable)
+    QFontDatabase::addApplicationFont(":/ui/assets/fonts/OpenSans/OpenSans-VariableFont_wdth,wght.ttf");
+
+    // Gravitas One
+    QFontDatabase::addApplicationFont(":/ui/assets/fonts/GravitasOne/GravitasOne-Regular.ttf");
 
     // Instanciamos el controlador
     ChessController chessController;

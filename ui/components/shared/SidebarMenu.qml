@@ -5,8 +5,6 @@ Rectangle {
     id: root
     color: "#11161d"
 
-    property string titleFont: ""
-
     Rectangle {
         width: 1; height: parent.height
         anchors.right: parent.right
@@ -21,22 +19,12 @@ Rectangle {
         Text {
             text: "♖ ChessAI"
             color: "#208ce8"
-            font.pixelSize: 24
-            font.family: root.titleFont
-            font.bold: true
+            font.pixelSize: 45
+            font.family: "Rajdhani"
+            font.weight: Font.Bold
         }
 
-        Rectangle {
-            width: parent.width; height: 40
-            color: "#1a2a3a"
-            radius: 8
-            Text {
-                anchors.centerIn: parent
-                text: "🎮 Play"
-                color: "#208ce8"
-                font.pixelSize: 16
-                font.bold: true
-            }
-        }
+
+
     }
 }

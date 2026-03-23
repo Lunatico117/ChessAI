@@ -21,7 +21,6 @@ set(SOURCES
         backend/src/Board.cpp
         backend/src/Game.cpp
         backend/src/GameState.cpp
-        backend/src/GameLogger.cpp
         backend/src/AIPlayer.cpp
         backend/src/HumanPlayer.cpp
         backend/src/Piece.cpp
@@ -42,7 +41,7 @@ set(SOURCES
         controllers/src/BoardModel.cpp
         controllers/src/GameClock.cpp
         controllers/src/MatchManager.cpp
-
+        controllers/src/GameLogger.cpp
 
         # --- Tests y Main ---
         test/Test_jaqueMatePastor.cpp
@@ -53,10 +52,9 @@ set(SOURCES
 # 4. Lista tus archivos de cabecera (.hpp o .h) para que Qt Creator los muestre
 set(HEADERS
     # --- Backend ---
-        backend/include/Game.hpp
         backend/include/Board.hpp
+        backend/include/Game.hpp
         backend/include/GameState.hpp
-        backend/include/GameLogger.hpp
         backend/include/AIPlayer.hpp
         backend/include/HumanPlayer.hpp
         backend/include/Piece.hpp
@@ -77,7 +75,7 @@ set(HEADERS
         controllers/include/BoardModel.hpp
         controllers/include/GameClock.hpp
         controllers/include/MatchManager.hpp
-
+        controllers/include/GameLogger.hpp
     )
 
 # 5. Crear el ejecutable con la interfaz gráfica (WIN32 evita que salga la consola negra en Windows)
@@ -108,13 +106,19 @@ qt_add_resources(${PROJECT_NAME} "qml_resources" PREFIX "/" FILES
     ui/views/GameOverView.qml
     ui/views/GameView.qml
     ui/views/MenuView.qml
+
     ui/components/game/ChessBoardUI.qml
     ui/components/game/ControlPanel.qml
     ui/components/game/DrawOfferPopup.qml
     ui/components/game/PromotionPopup.qml
     ui/components/shared/SidebarMenu.qml
 
-    ui/assets/fonts/GravitasOne-Regular.ttf
+    ui/assets/fonts/GravitasOne/GravitasOne-Regular.ttf
+    ui/assets/fonts/OpenSans/OpenSans-VariableFont_wdth,wght.ttf
+    ui/assets/fonts/Rajdhani/Rajdhani-Bold.ttf
+    ui/assets/fonts/Rajdhani/Rajdhani-Medium.ttf
+    ui/assets/fonts/Rajdhani/Rajdhani-Regular.ttf
+    ui/assets/fonts/Rajdhani/Rajdhani-SemiBold.ttf
     ui/assets/b_bishop.svg
     ui/assets/w_bishop.svg
     ui/assets/b_king.svg
@@ -127,5 +131,6 @@ qt_add_resources(${PROJECT_NAME} "qml_resources" PREFIX "/" FILES
     ui/assets/w_pawn.svg
     ui/assets/b_rook.svg
     ui/assets/w_rook.svg
+
 
 )

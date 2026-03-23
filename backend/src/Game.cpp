@@ -118,6 +118,45 @@ bool Game::isInCheck(Color color) const {
     return RuleValidator::isKingInCheck(state, color);
 }
 
+bool Game::isKingsideCastle(Position from, Position to) {
+    Piece* p = state.getBoard().getPieceAt(from);
+
+    // Si es el Rey y se mueve de la columna 4 (E) a la 6 (G), es enroque corto
+    if (p != nullptr && p->getType() == PieceType::KING) {
+        if (from.getCol() == 4 && to.getCol() == 6) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Game::isQueensideCastle(Position from, Position to) {
+    Piece* p = state.getBoard().getPieceAt(from);
+
+    // Si es el Rey y se mueve de la columna 4 (E) a la 2 (C), es enroque largo
+    if (p != nullptr && p->getType() == PieceType::KING) {
+        if (from.getCol() == 4 && to.getCol() == 2) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Game::isEnPassant(Position from, Position to) {
+    Piece* p = state.getBoard().getPieceAt(from);
+
+    // Si la pieza es un peón...
+    if (p != nullptr && p->getType() == PieceType::PAWN) {
+        // ...y su casilla destino es EXACTAMENTE el "enPassantTarget" que guardó GameState
+        // (La coordenada fantasma que dejaste habilitada)
+        if (to.getRow() == state.getEnPassantTarget().getRow() &&
+            to.getCol() == state.getEnPassantTarget().getCol()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 bool Game::isPromotionMove(Position from, Position to) const {
     Piece* p = state.getBoard().getPieceAt(from);

@@ -7,7 +7,8 @@ ChessController::ChessController(QObject *parent)
     m_game(new HumanPlayer(Color::WHITE), new HumanPlayer(Color::BLACK)),
     m_boardModel(new BoardModel(this)),
     m_clock(new GameClock(this)),
-    m_matchManager(new MatchManager(this)) // INICIAMOS EL ÁRBITRO
+    m_matchManager(new MatchManager(this)), // INICIAMOS EL ÁRBITRO
+    m_logger(new GameLogger(this))
 {
     // Este metodo lee la matriz y la convierte para que QML la pueda entender
     m_boardModel->updateFromGame(m_game);
@@ -98,10 +99,39 @@ void ChessController::handleSquareClick(int row, int col) {
                 emit promotionRequested();
 
             } else {
+                // 1. Averiguamos que pieza se está moviendo (usando el índice de la selección original)
+                int selectedIndex = getIndex(m_selectedRow, m_selectedCol);
+                QString movingPiece = m_boardModel->getSquare(selectedIndex).pieceType;
+
+                // 2. Averiguamos si hay una pieza en la casilla destino (para saber si es captura)
+                bool isCapture = (board.getPieceAt(to) != nullptr);
+
+                bool isKingsideCastle = m_game.isKingsideCastle(from, to);
+                bool isQueensideCastle = m_game.isQueensideCastle(from, to);
+                bool isEnPassant = m_game.isEnPassant(from, to);
+
+                QString specialMove = "";
+                if (isKingsideCastle) specialMove = "O-O";
+                else if (isQueensideCastle) specialMove = "O-O-O";
+
+                // Si es peón al paso, forzamos que isCapture sea true
+                if (isEnPassant) isCapture = true;
                 // Es un movimiento normal
                 bool moveSuccess = m_game.processMove(from, to);
 
                 if (moveSuccess) {
+
+                    bool isMate = (m_game.isGameOver() && m_game.getEndReason() == "Jaque Mate");
+                    bool isCheck = false;
+
+                    //Se debe traducir de String a un ENUM para poder enviarlo con los parametros que necesita
+                    Color opponentColor = (m_currentTurn == "white") ? Color::BLACK : Color::WHITE;
+                    if (!isMate) {
+                        isCheck = m_game.isInCheck(opponentColor); // <-- DEBES IMPLEMENTAR/USAR TU MÉTODO AQUÍ
+                    }
+
+                    // Pasar isCheck e isMate al Logger
+                    m_logger->logMove(movingPiece, m_selectedRow, m_selectedCol, row, col, isCapture, "", specialMove, isCheck, isMate);
                     m_boardModel->clearSelectionsAndHighlights();
                     m_boardModel->updateFromGame(m_game);
                     m_currentTurn = (m_currentTurn == "white") ? "black" : "white";
@@ -127,16 +157,25 @@ void ChessController::handleSquareClick(int row, int col) {
 void ChessController::promotePendingPawn(const QString& pieceType) {
     // Traducimos el texto que nos manda QML a nuestro Enum de C++
     PromotionType promoType = PromotionType::QUEEN; // Valor por defecto seguro
+    QString promoNotation = "Q";
 
     if (pieceType == "rook") {
         promoType = PromotionType::ROOK;
+        promoNotation = "R";
     }
     else if (pieceType == "bishop") {
         promoType = PromotionType::BISHOP;
+        promoNotation = "B";
     }
     else if (pieceType == "knight"){
         promoType = PromotionType::KNIGHT;
+        promoNotation = "N";
     }
+
+    // Averiguamos si había una pieza en el destino antes de mover
+    const Board& board = m_game.getBoard();
+    Position toPos(m_pendingToRow, m_pendingToCol);
+    bool isCapture = (board.getPieceAt(toPos) != nullptr);
 
     // Ejecutamos el movimiento que estaba pausado
     bool moveSuccess = m_game.processMove(
@@ -147,7 +186,14 @@ void ChessController::promotePendingPawn(const QString& pieceType) {
 
     // Si fue exitoso, limpiamos visualmente y cambiamos turno
     if (moveSuccess) {
-        m_boardModel->clearSelectionsAndHighlights();
+        bool isMate = (m_game.isGameOver() && m_game.getEndReason() == "Jaque Mate");
+        bool isCheck = false;
+
+        if (!isMate) {
+            Color opponentColor = (m_currentTurn == "white") ? Color::BLACK : Color::WHITE;
+            isCheck = m_game.isInCheck(opponentColor);
+        }
+        m_logger->logMove("pawn", m_pendingFromRow, m_pendingFromCol, m_pendingToRow, m_pendingToCol, isCapture, promoNotation, "", isCheck, isMate);        m_boardModel->clearSelectionsAndHighlights();
         m_boardModel->updateFromGame(m_game);
         m_currentTurn = (m_currentTurn == "white") ? "black" : "white";
         emit turnChanged();
@@ -169,11 +215,22 @@ void ChessController::checkGameOver() {
 
         // Le pasamos la información al Árbitro para que él declare el fin del juego
         m_matchManager->endMatch(reason, winner);
+        if (reason != "Jaque Mate") {
+            if (winnerStr == "Empate") {
+                m_logger->logResult("1/2-1/2");
+            } else if (winnerStr == "Blancas") {
+                m_logger->logResult("1-0");
+            } else if (winnerStr == "Negras") {
+                m_logger->logResult("0-1");
+            }
+        }
     }
 }
 
 void ChessController::surrender() {
     m_matchManager->surrender(m_currentTurn);
+    QString result = (m_currentTurn == "white") ? "0-1" : "1-0";
+    m_logger->logResult(result);
 }
 
 void ChessController::offerDraw() {
@@ -182,6 +239,7 @@ void ChessController::offerDraw() {
 
 void ChessController::acceptDraw() {
     m_matchManager->acceptDraw();
+    m_logger->logResult("1/2-1/2");
 }
 
 void ChessController::declineDraw() {
@@ -195,6 +253,9 @@ void ChessController::restartGame() {
     // Limpiamos el estado de fin de juego
     m_matchManager->reset();
 
+    // Limpiamos el historial de movimientos
+    m_logger->clearLog();
+
     // Reiniciamos el contador de los relojs
     m_clock->start(10);
 
@@ -206,6 +267,8 @@ void ChessController::requestUndo() {
     // Le pedimos al Backend que intente deshacer
     if (m_game.undoLastMove()) {
 
+        // El logger retrocede sus pilas
+        m_logger->goBackward();
         // Revertimos la variable de turno local
         m_currentTurn = (m_currentTurn == "white") ? "black" : "white";
 
