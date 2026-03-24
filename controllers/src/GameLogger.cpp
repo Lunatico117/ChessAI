@@ -30,14 +30,30 @@ void GameLogger::goBackward() {
     // Si no hay pasado, no podemos retroceder
     if (m_pastStack.empty()) return;
 
-    // 1. Sacamos el movimiento del pasado y lo guardamos en el futuro
-    QString move = m_pastStack.top();
+    // 1. Extraemos el elemento de la cima (podría ser un movimiento normal o un resultado)
+    QString item = m_pastStack.top();
     m_pastStack.pop();
-    m_futureStack.push(move);
+    m_futureStack.push(item);
 
-    // 2. Lo quitamos visualmente de la lista de QML
+    // Lo quitamos visualmente de la lista de QML
     if (!m_displayList.isEmpty()) {
         m_displayList.removeLast();
+    }
+
+    // 2. LA MAGIA: Si el elemento que acabamos de sacar era un RESULTADO,
+    // significa que tenemos que sacar un elemento más (el movimiento real que lo causó).
+    if (item == "1-0" || item == "0-1" || item == "1/2-1/2") {
+
+        if (!m_pastStack.empty()) {
+            QString realMove = m_pastStack.top();
+            m_pastStack.pop();
+            m_futureStack.push(realMove);
+
+            // Lo quitamos también del QML
+            if (!m_displayList.isEmpty()) {
+                m_displayList.removeLast();
+            }
+        }
     }
 
     emit moveHistoryChanged();
@@ -52,8 +68,23 @@ void GameLogger::goForward() {
     m_futureStack.pop();
     m_pastStack.push(move);
 
-    // 2. Lo volvemos a poner en la lista de QML
+    // Lo volvemos a poner en la lista de QML
     m_displayList.append(move);
+
+    // 2. LA MAGIA INVERSA: Verificamos si lo que quedó AHORA en la cima del futuro
+    // es el RESULTADO que acompañaba a este movimiento.
+    if (!m_futureStack.empty()) {
+        QString nextItem = m_futureStack.top();
+
+        // Si es un resultado, lo pasamos al historial inmediatamente en el mismo turno
+        if (nextItem == "1-0" || nextItem == "0-1" || nextItem == "1/2-1/2") {
+            m_futureStack.pop();
+            m_pastStack.push(nextItem);
+
+            // Lo ponemos en QML
+            m_displayList.append(nextItem);
+        }
+    }
 
     emit moveHistoryChanged();
 }

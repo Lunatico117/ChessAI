@@ -15,8 +15,11 @@ private:
     bool gameOver;
     std::string endReason = "";
     std::string winnerStr = "";
+
     // El historico de movimientos
+    // Estos vectores tambien se usaran para el modo analisis
     std::vector<Move> moveHistory;
+    std::vector<Move> redoHistory;
 
     // Indice 0 = Blancas, Indice 1 = Negras
     // Indica si el jugador ya gasto su "Deshacer" en este turno
@@ -53,15 +56,21 @@ public:
     // Metodo para saber si se debe abrir el menu de coronacion
     bool isPromotionMove(Position from, Position to) const;
 
+    // Este metodo solicita el deshacer
+    bool undoLastMove();
+
     bool isGameOver() const { return gameOver; }
     std::string getEndReason() const { return endReason; }
     std::string getWinner() const { return winnerStr; }
 
+
     // Nuevo metodo para reiniciar la partida
     void resetGame();
 
-    // Este metodo solicita el deshacer
-    bool undoLastMove();
+
+    // Se usan en el analisis de la partida
+    bool stepBackwardAnalysis();
+    bool stepForwardAnalysis();
 
 };
 

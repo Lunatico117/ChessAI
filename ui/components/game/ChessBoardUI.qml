@@ -33,7 +33,7 @@ Rectangle {
                     color: "#ffffff";
                     font.family: "Rajdhani";
                     font.weight: chessController.currentTurn === "black" ? Font.Bold : Font.Medium;
-                    opacity: chessController.currentTurn === "white" ? 1.0 : 0.5
+                    opacity: chessController.currentTurn === "black" ? 1.0 : 0.5
                     anchors.centerIn: parent;
                     font.pixelSize: 20 }
             }

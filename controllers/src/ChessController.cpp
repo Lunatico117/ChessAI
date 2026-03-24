@@ -31,6 +31,11 @@ ChessController::ChessController(QObject *parent)
 }
 
 void ChessController::handleSquareClick(int row, int col) {
+
+    if (m_isAnalysisMode) {
+        return;
+    }
+
     int index = getIndex(row, col);
     Position clickedPos(row, col);
     const Board& board = m_game.getBoard();
@@ -207,63 +212,12 @@ void ChessController::promotePendingPawn(const QString& pieceType) {
     m_pendingToCol = -1;
 }
 
-void ChessController::checkGameOver() {
-    if (m_game.isGameOver()) {
-        QString reason = QString::fromStdString(m_game.getEndReason()); // "Jaque Mate" o "Rey Ahogado"
-        QString winnerStr = QString::fromStdString(m_game.getWinner());
-        QString winner = winnerStr == "Empate" ? "Empate mutuo" : "Ganador: " + winnerStr;
-
-        // Le pasamos la información al Árbitro para que él declare el fin del juego
-        m_matchManager->endMatch(reason, winner);
-        if (reason != "Jaque Mate") {
-            if (winnerStr == "Empate") {
-                m_logger->logResult("1/2-1/2");
-            } else if (winnerStr == "Blancas") {
-                m_logger->logResult("1-0");
-            } else if (winnerStr == "Negras") {
-                m_logger->logResult("0-1");
-            }
-        }
-    }
-}
-
-void ChessController::surrender() {
-    m_matchManager->surrender(m_currentTurn);
-    QString result = (m_currentTurn == "white") ? "0-1" : "1-0";
-    m_logger->logResult(result);
-}
-
-void ChessController::offerDraw() {
-    m_matchManager->offerDraw();
-}
-
-void ChessController::acceptDraw() {
-    m_matchManager->acceptDraw();
-    m_logger->logResult("1/2-1/2");
-}
-
-void ChessController::declineDraw() {
-    m_matchManager->declineDraw();
-}
-
-void ChessController::restartGame() {
-    m_game = Game(new HumanPlayer(Color::WHITE), new HumanPlayer(Color::BLACK));
-    m_currentTurn = "white";
-
-    // Limpiamos el estado de fin de juego
-    m_matchManager->reset();
-
-    // Limpiamos el historial de movimientos
-    m_logger->clearLog();
-
-    // Reiniciamos el contador de los relojs
-    m_clock->start(10);
-
-    m_boardModel->updateFromGame(m_game);
-    emit turnChanged();
-}
 
 void ChessController::requestUndo() {
+
+    if (m_isAnalysisMode) {
+        return;
+    }
     // Le pedimos al Backend que intente deshacer
     if (m_game.undoLastMove()) {
 
@@ -290,5 +244,163 @@ void ChessController::requestUndo() {
         qDebug() << "Movimiento deshecho con éxito.";
     } else {
         qDebug() << "No se puede deshacer: Historial vacío o límite por turno alcanzado.";
+    }
+}
+
+
+void ChessController::surrender() {
+    m_matchManager->surrender(m_currentTurn);
+    QString result = (m_currentTurn == "white") ? "0-1" : "1-0";
+    m_logger->logResult(result);
+}
+
+
+void ChessController::offerDraw() {
+    m_matchManager->offerDraw();
+}
+
+
+void ChessController::acceptDraw() {
+    m_matchManager->acceptDraw();
+    m_logger->logResult("1/2-1/2");
+}
+
+
+void ChessController::declineDraw() {
+    m_matchManager->declineDraw();
+}
+
+
+// Implementación del método que llamará QML
+void ChessController::toggleAnalysisMode() {
+    if (m_isAnalysisMode) {
+        // SI ESTABA ENCENDIDO: Vamos a apagarlo y volver al presente
+
+        // 1. Ejecutamos un bucle que avanza hacia el futuro hasta que ya no queden jugadas
+        while (m_game.stepForwardAnalysis()) {
+            m_logger->goForward(); // Avanzamos el texto
+            m_currentTurn = (m_currentTurn == "white") ? "black" : "white"; // Sincronizamos el turno
+        }
+
+        // 2. Apagamos la variable de análisis
+        m_isAnalysisMode = false;
+
+        // 3. Limpiamos selecciones y actualizamos la interfaz gráfica UNA SOLA VEZ
+        m_selectedRow = -1;
+        m_selectedCol = -1;
+        m_boardModel->clearSelectionsAndHighlights();
+        m_boardModel->updateFromGame(m_game);
+
+        // 4. Avisamos a QML que los botones deben cambiar
+        emit analysisModeChanged();
+        emit turnChanged();
+
+        qDebug() << "Saliendo de Análisis: Tablero devuelto al presente automáticamente.";
+
+    } else {
+        // SI ESTABA APAGADO: Simplemente lo encendemos
+        m_isAnalysisMode = true;
+        emit analysisModeChanged();
+
+        qDebug() << "Entrando al Modo Análisis (Modo Lectura).";
+    }
+}
+
+void ChessController::stepBackward() {
+    // 1. Bloqueo de seguridad: Solo funciona si el modo análisis está activo
+    if (!m_isAnalysisMode) return;
+
+    // 2. Intentamos retroceder en el backend lógico
+    if (m_game.stepBackwardAnalysis()) {
+
+        // 3. Retrocedemos el texto en el panel
+        m_logger->goBackward();
+
+        // 4. Cambiamos el turno visualmente para saber de quién es la jugada en este punto del pasado
+        m_currentTurn = (m_currentTurn == "white") ? "black" : "white";
+
+        // 5. Limpiamos cualquier clic "fantasma" que el usuario haya dejado a medias
+        m_selectedRow = -1;
+        m_selectedCol = -1;
+        m_boardModel->clearSelectionsAndHighlights();
+
+        // 6. Sincronizamos la matriz visual con el backend
+        m_boardModel->updateFromGame(m_game);
+
+        // 7. Notificamos a QML que el turno cambió
+        emit turnChanged();
+
+        qDebug() << "Análisis: Paso hacia atrás completado.";
+    }
+}
+
+void ChessController::stepForward() {
+    // 1. Bloqueo de seguridad: Solo funciona si el modo análisis está activo
+    if (!m_isAnalysisMode) return;
+
+    // 2. Intentamos avanzar hacia el futuro en el backend
+    if (m_game.stepForwardAnalysis()) {
+
+        // 3. Avanzamos el texto en el panel
+        m_logger->goForward();
+
+        // 4. Cambiamos el turno visualmente
+        m_currentTurn = (m_currentTurn == "white") ? "black" : "white";
+
+        // 5. Limpiamos selecciones
+        m_selectedRow = -1;
+        m_selectedCol = -1;
+        m_boardModel->clearSelectionsAndHighlights();
+
+        // 6. Sincronizamos la matriz visual
+        m_boardModel->updateFromGame(m_game);
+
+        // 7. Notificamos a QML
+        emit turnChanged();
+
+        qDebug() << "Análisis: Paso hacia adelante completado.";
+    }
+}
+
+
+void ChessController::restartGame() {
+    m_game = Game(new HumanPlayer(Color::WHITE), new HumanPlayer(Color::BLACK));
+    m_currentTurn = "white";
+
+    // Apaga el modo analisis
+    m_isAnalysisMode = false;
+    emit analysisModeChanged();
+
+    // Limpiamos el estado de fin de juego
+    m_matchManager->reset();
+
+    // Limpiamos el historial de movimientos
+    m_logger->clearLog();
+
+    // Reiniciamos el contador de los relojs
+    m_clock->start(10);
+
+    m_boardModel->updateFromGame(m_game);
+    emit turnChanged();
+}
+
+
+void ChessController::checkGameOver() {
+    if (m_game.isGameOver()) {
+        QString reason = QString::fromStdString(m_game.getEndReason()); // "Jaque Mate" o "Rey Ahogado"
+        QString winnerStr = QString::fromStdString(m_game.getWinner());
+        QString winner = winnerStr == "Empate" ? "Empate mutuo" : "Ganador: " + winnerStr;
+
+        // Le pasamos la información al Árbitro para que él declare el fin del juego
+        m_matchManager->endMatch(reason, winner);
+        if (reason != "Jaque Mate") {
+            if (winnerStr == "Empate") {
+                m_logger->logResult("1/2-1/2");
+            } else if (winnerStr == "Blancas") {
+                m_logger->logResult("1-0");
+            } else if (winnerStr == "Negras") {
+                m_logger->logResult("0-1");
+            }
+        }
     }
 }

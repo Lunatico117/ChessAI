@@ -16,6 +16,8 @@ class ChessController : public QObject {
     // Arbitro
     Q_PROPERTY(MatchManager* match READ getMatch CONSTANT)
     Q_PROPERTY(GameLogger* logger READ getLogger CONSTANT)
+    // Analizar partida
+    Q_PROPERTY(bool isAnalysisMode READ getIsAnalysisMode NOTIFY analysisModeChanged)
 
 
 public:
@@ -31,6 +33,8 @@ public:
 
     GameLogger* getLogger() const { return m_logger; }
 
+    bool getIsAnalysisMode() const { return m_isAnalysisMode; }
+
     Q_INVOKABLE void handleSquareClick(int row, int col);
 
     // Este invokable se usara cuando elija la pieza para la coronacion
@@ -45,6 +49,12 @@ public:
     Q_INVOKABLE void acceptDraw();
     Q_INVOKABLE void declineDraw();
 
+    // Alterna el modo de analisis
+    Q_INVOKABLE void toggleAnalysisMode();
+
+    Q_INVOKABLE void stepBackward();
+    Q_INVOKABLE void stepForward();
+
     // Este invokable se usara para reiniciar el tablero
     Q_INVOKABLE void restartGame();
 
@@ -55,6 +65,8 @@ signals:
     void promotionRequested();
 
     void undoSuccessful();
+
+    void analysisModeChanged();
 
 
 private:
@@ -77,6 +89,8 @@ private:
     int m_pendingFromCol = -1;
     int m_pendingToRow = -1;
     int m_pendingToCol = -1;
+
+    bool m_isAnalysisMode = false;
 
     int getIndex(int row, int col) const { return row * 8 + col; }
 

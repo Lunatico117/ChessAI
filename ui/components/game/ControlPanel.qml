@@ -289,12 +289,10 @@ Rectangle {
                     border.color: chessController.isAnalysisMode ? "#208ce8" : "transparent"
                     border.width: chessController.isAnalysisMode ? 2 : 0
 
-                    Behavior on color {
-                        ColorAnimation { duration: 150 }
-                    }
+                    Behavior on color { ColorAnimation { duration: 150 } }
 
                     Text {
-                        text: chessController.isAnalysisMode ? "👁 Ver Resultado" : "🔍 Analizar Juego"
+                        text: chessController.isAnalysisMode ? " Salir del Análisis" : "🔍 Analizar Juego"
                         color: chessController.isAnalysisMode ? "#208ce8" : "#ffffff"
                         anchors.centerIn: parent
                         font.family: "Rajdhani"
@@ -313,31 +311,75 @@ Rectangle {
                     }
                 }
 
+                // 2. NUEVOS CONTROLES DE NAVEGACIÓN (Solo visibles en Modo Análisis)
+                RowLayout {
+                    width: parent.width
+                    spacing: 10
+                    visible: chessController.isAnalysisMode // <- La magia ocurre aquí
+
+                    Rectangle {
+                        id: btnPrev
+                        Layout.fillWidth: true
+                        height: 45
+                        radius: 8
+                        color: prevMouse.containsMouse ? "#2e3b4e" : "#222d3a"
+
+                        Behavior on color { ColorAnimation { duration: 150 } }
+
+                        Text {
+                            text: "⬅️ Atrás";
+                            color: "#ffffff";
+                            anchors.centerIn: parent;
+                            font.family: "Rajdhani";
+                            font.pixelSize: 16 }
+
+                        MouseArea {
+                            id: prevMouse; anchors.fill: parent; hoverEnabled: true
+                            onPressed: btnPrev.scale = 0.97
+                            onReleased: btnPrev.scale = 1.0
+                            onClicked: {
+                                chessController.stepBackward()
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        id: btnNext
+                        Layout.fillWidth: true
+                        height: 45
+                        radius: 8
+                        color: nextMouse.containsMouse ? "#2e3b4e" : "#222d3a"
+
+                        Behavior on color { ColorAnimation { duration: 150 } }
+
+                        Text { text: "Adelante ➡️"; color: "#ffffff"; anchors.centerIn: parent; font.family: "Rajdhani"; font.pixelSize: 16 }
+
+                        MouseArea {
+                            id: nextMouse; anchors.fill: parent; hoverEnabled: true
+                            onPressed: btnNext.scale = 0.97
+                            onReleased: btnNext.scale = 1.0
+                            onClicked: {
+                                chessController.stepForward()
+                            }
+                        }
+                    }
+                }
+
+                // 3. BOTONES NORMALES (Ocultos durante el Modo Análisis)
                 Rectangle {
                     id: btnRestart
                     width: parent.width
                     height: 45
                     radius: 8
                     color: restartMouse.containsMouse ? "#3aa0ff" : "#208ce8"
+                    visible: !chessController.isAnalysisMode // <- Se oculta en análisis
 
-                    Behavior on color {
-                        ColorAnimation { duration: 150 }
-                    }
+                    Behavior on color { ColorAnimation { duration: 150 } }
 
-                    Text {
-                        text: "🔄 Volver a jugar"
-                        color: "#ffffff"
-                        anchors.centerIn: parent
-                        font.family: "Rajdhani"
-                        font.weight: Font.Regular
-                        font.pixelSize: 16
-                    }
+                    Text { text: "🔄 Volver a jugar"; color: "#ffffff"; anchors.centerIn: parent; font.family: "Rajdhani"; font.pixelSize: 16 }
 
                     MouseArea {
-                        id: restartMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-
+                        id: restartMouse; anchors.fill: parent; hoverEnabled: true
                         onPressed: btnRestart.scale = 0.97
                         onReleased: btnRestart.scale = 1.0
                         onClicked: chessController.restartGame()
@@ -350,25 +392,14 @@ Rectangle {
                     height: 45
                     radius: 8
                     color: menuMouse.containsMouse ? "#2e3b4e" : "#222d3a"
+                    visible: !chessController.isAnalysisMode // <- Se oculta en análisis
 
-                    Behavior on color {
-                        ColorAnimation { duration: 150 }
-                    }
+                    Behavior on color { ColorAnimation { duration: 150 } }
 
-                    Text {
-                        text: "🏠 Menú"
-                        color: "#ffffff"
-                        anchors.centerIn: parent
-                        font.family: "Rajdhani"
-                        font.weight: Font.Regular
-                        font.pixelSize: 16
-                    }
+                    Text { text: "🏠 Menú"; color: "#ffffff"; anchors.centerIn: parent; font.family: "Rajdhani"; font.pixelSize: 16 }
 
                     MouseArea {
-                        id: menuMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-
+                        id: menuMouse; anchors.fill: parent; hoverEnabled: true
                         onPressed: btnMenu.scale = 0.97
                         onReleased: btnMenu.scale = 1.0
                         onClicked: console.log("Volver al menú")

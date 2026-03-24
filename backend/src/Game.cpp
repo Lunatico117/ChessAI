@@ -62,6 +62,19 @@ std::vector<Move> Game::getLegalMovesForPiece(Position pos) {
 }
 
 
+std::vector<Position> Game::getLegalDestinations(Position origin) {
+    std::vector<Position> destinations;
+    // Usamos tu funcion existente para obtener todos los movimientos completos
+    std::vector<Move> moves = getLegalMovesForPiece(origin);
+
+    // Filtramos y guardamos unicamente la posición de destino
+    for(const Move& m : moves) {
+        destinations.push_back(m.getTo());
+    }
+    return destinations;
+}
+
+
 bool Game::processMove(Position from, Position to, PromotionType promotion) {
     if (gameOver) return false;
 
@@ -76,12 +89,14 @@ bool Game::processMove(Position from, Position to, PromotionType promotion) {
                 if (m.getPromotionType() == promotion) {
                     state.updateState(m);
                     moveHistory.push_back(std::move(m));
+                    redoHistory.clear();
                     moveFound = true;
                     break;
                 }
             } else {
                 state.updateState(m);
                 moveHistory.push_back(std::move(m));
+                redoHistory.clear();
                 moveFound = true;
                 break;
             }
@@ -118,6 +133,7 @@ bool Game::isInCheck(Color color) const {
     return RuleValidator::isKingInCheck(state, color);
 }
 
+
 bool Game::isKingsideCastle(Position from, Position to) {
     Piece* p = state.getBoard().getPieceAt(from);
 
@@ -130,6 +146,7 @@ bool Game::isKingsideCastle(Position from, Position to) {
     return false;
 }
 
+
 bool Game::isQueensideCastle(Position from, Position to) {
     Piece* p = state.getBoard().getPieceAt(from);
 
@@ -141,6 +158,7 @@ bool Game::isQueensideCastle(Position from, Position to) {
     }
     return false;
 }
+
 
 bool Game::isEnPassant(Position from, Position to) {
     Piece* p = state.getBoard().getPieceAt(from);
@@ -171,31 +189,6 @@ bool Game::isPromotionMove(Position from, Position to) const {
         }
     }
     return false;
-}
-
-
-
-void Game::resetGame() {
-    state = GameState(); // Reinicia el estado (y el tablero por dentro)
-    gameOver = false;
-    endReason = "";
-    winnerStr = "";
-
-    moveHistory.clear();
-    hasUsedUndo[0] = false;
-    hasUsedUndo[1] = false;
-}
-
-std::vector<Position> Game::getLegalDestinations(Position origin) {
-    std::vector<Position> destinations;
-    // Usamos tu funcion existente para obtener todos los movimientos completos
-    std::vector<Move> moves = getLegalMovesForPiece(origin);
-
-    // Filtramos y guardamos unicamente la posición de destino
-    for(const Move& m : moves) {
-        destinations.push_back(m.getTo());
-    }
-    return destinations;
 }
 
 
@@ -231,6 +224,55 @@ bool Game::undoLastMove() {
     gameOver = false;
     endReason = "";
     winnerStr = "";
+
+    return true;
+}
+
+
+void Game::resetGame() {
+    state = GameState(); // Reinicia el estado (y el tablero por dentro)
+    gameOver = false;
+    endReason = "";
+    winnerStr = "";
+
+    moveHistory.clear();
+    redoHistory.clear();
+    hasUsedUndo[0] = false;
+    hasUsedUndo[1] = false;
+}
+
+
+bool Game::stepBackwardAnalysis() {
+    // Si no hay nada en el pasado, no podemos retroceder
+    if (moveHistory.empty()) return false;
+
+    // Extraemos el último movimiento del pasado
+    Move lastMove = std::move(moveHistory.back());
+    moveHistory.pop_back();
+
+    // Revertimos el tablero lógicamente (ignorando las reglas de comodines y game over)
+    state.undoState(lastMove);
+
+    // Lo guardamos en el futuro
+    redoHistory.push_back(std::move(lastMove));
+
+    return true;
+}
+
+
+bool Game::stepForwardAnalysis() {
+    // Si no hay nada en el futuro, no podemos avanzar
+    if (redoHistory.empty()) return false;
+
+    // Extraemos el movimiento del futuro
+    Move nextMove = std::move(redoHistory.back());
+    redoHistory.pop_back();
+
+    // Aplicamos el movimiento al tablero (sin verificar reglas porque ya es legal)
+    state.updateState(nextMove);
+
+    // Lo devolvemos al historial normal del pasado
+    moveHistory.push_back(std::move(nextMove));
 
     return true;
 }
