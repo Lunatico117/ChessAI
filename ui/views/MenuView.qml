@@ -80,8 +80,8 @@ Rectangle {
 
         // 3. Subtitulo
         Text {
-            Layout.alignment: Qt.AlignHCenter
-            text: "Domina el tablero con la inteligencia artificial más\navanzada del mundo."
+            Layout.alignment: Qt.AlignHCente
+            text: "\“Prefiero una partida perdida que una partida nunca jugada.\” — David Bronstein"
             color: "#8a9ba8" // Color gris/azulado para contraste
             font.pixelSize: 22
             font.family: "Rajdhani"

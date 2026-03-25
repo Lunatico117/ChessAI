@@ -1,9 +1,23 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 
 Rectangle {
     id: root
     color: "#11161d"
+
+    SurrenderPopup {
+            id: surrenderPopup
+
+            // Lo centramos en toda la ventana
+            parent: Overlay.overlay
+            anchors.centerIn: parent
+
+            // Aquí conectamos la señal que creamos en el otro archivo con C++
+            onAccepted: {
+                chessController.surrender()
+            }
+        }
 
     Rectangle {
         width: 1; height: parent.height
@@ -264,7 +278,7 @@ Rectangle {
 
                             onPressed: btnSurrender.scale = 0.97
                             onReleased: btnSurrender.scale = 1.0
-                            onClicked: chessController.surrender()
+                            onClicked: surrenderPopup.open()
                         }
                     }
                 }

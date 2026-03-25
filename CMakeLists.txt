@@ -110,6 +110,7 @@ qt_add_resources(${PROJECT_NAME} "qml_resources" PREFIX "/" FILES
     ui/components/game/DrawOfferPopup.qml
     ui/components/game/PromotionPopup.qml
     ui/components/game/GameSetupPopup.qml
+    ui/components/game/SurrenderPopup.qml
     ui/components/shared/SidebarMenu.qml
 
     ui/assets/fonts/GravitasOne/GravitasOne-Regular.ttf
