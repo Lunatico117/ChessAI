@@ -46,7 +46,7 @@ Popup {
             spacing: 14
             anchors.horizontalCenter: parent.horizontalCenter
 
-            // 🔹 Dama
+            // Dama
             Rectangle {
                 id: queenBtn
                 width: 55; height: 55; radius: 10
@@ -74,7 +74,7 @@ Popup {
                 }
             }
 
-            // 🔹 Torre
+            // Torre
             Rectangle {
                 id: rookBtn
                 width: 55; height: 55; radius: 10
@@ -101,7 +101,7 @@ Popup {
                 }
             }
 
-            // 🔹 Alfil
+            // Alfil
             Rectangle {
                 id: bishopBtn
                 width: 55; height: 55; radius: 10
@@ -128,7 +128,7 @@ Popup {
                 }
             }
 
-            // 🔹 Caballo
+            // Caballo
             Rectangle {
                 id: knightBtn
                 width: 55; height: 55; radius: 10

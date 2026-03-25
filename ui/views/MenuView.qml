@@ -6,17 +6,18 @@ Rectangle {
     id: root
     signal playClicked()
     anchors.fill: parent
-    color: "#11161d" // Tu color de fondo oscuro
+    color: "#11161d"
 
-    // ==========================================
-    // BOTÓN SUPERIOR DERECHO: Iniciar Sesión
-    // ==========================================
+    // Boton login
     Rectangle {
         id: loginBtn
         width: 140
         height: 40
         radius: 20
         color: loginMouseArea.containsMouse ? "#1a70ba" : "#208ce8" // Efecto hover
+
+        Behavior on color { ColorAnimation { duration: 150 } }
+
         anchors.top: parent.top
         anchors.right: parent.right
         anchors.margins: 30
@@ -35,6 +36,8 @@ Rectangle {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            onPressed: loginBtn.scale = 0.97
+            onReleased: loginBtn.scale = 1.0
             onClicked: {
                 console.log("Botón Iniciar Sesión presionado")
                 // Aquí irá la lógica para abrir el login
@@ -42,9 +45,7 @@ Rectangle {
         }
     }
 
-    // ==========================================
-    // CONTENIDO CENTRAL (Logo, Título y Jugar)
-    // ==========================================
+    // Contenido
     ColumnLayout {
         anchors.centerIn: parent
         spacing: 25
@@ -55,7 +56,7 @@ Rectangle {
             width: 160
             height: 200
             radius: 40
-            color: "#1a222c" // Un tono ligeramente más claro que el fondo
+            color: "#1a222c" // Un tono ligeramente mas claro que el fondo
 
             Image {
                 anchors.centerIn: parent
@@ -67,7 +68,7 @@ Rectangle {
             }
         }
 
-        // 2. Título Principal
+        // 2. Titulo Principal
         Text {
             Layout.alignment: Qt.AlignHCenter
             text: "ChessAI"
@@ -77,7 +78,7 @@ Rectangle {
             font.weight: Font.Bold
         }
 
-        // 3. Subtítulo
+        // 3. Subtitulo
         Text {
             Layout.alignment: Qt.AlignHCenter
             text: "Domina el tablero con la inteligencia artificial más\navanzada del mundo."
@@ -91,7 +92,7 @@ Rectangle {
         // Espaciador invisible para separar el texto del botón
         Item { Layout.preferredHeight: 20 }
 
-        // 4. Botón Principal "Jugar"
+        // 4. Boton Principal "Jugar"
         Rectangle {
             id: playBtn
             Layout.alignment: Qt.AlignHCenter
@@ -99,6 +100,8 @@ Rectangle {
             height: 60
             radius: 30
             color: playMouseArea.containsMouse ? "#1a70ba" : "#208ce8" // Efecto hover
+
+            Behavior on color { ColorAnimation { duration: 150 } }
 
             // Sombra/Brillo sutil simulado con un borde
             border.color: playMouseArea.containsMouse ? "#208ce8" : "transparent"
@@ -118,6 +121,8 @@ Rectangle {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
+                onPressed: playBtn.scale = 0.97
+                onReleased: playBtn.scale = 1.0
                 onClicked: {
                     root.playClicked()
                 }
@@ -125,30 +130,18 @@ Rectangle {
         }
     }
 
-    // ==========================================
-    // PIE DE PÁGINA (Footer)
-    // ==========================================
+    // Pie de pagina
     ColumnLayout {
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottomMargin: 40
         spacing: 15
 
-        // Enlaces
-        RowLayout {
-            Layout.alignment: Qt.AlignHCenter
-            spacing: 35
-
-            Text { text: "Reglas"; color: "#8a9ba8"; font.pixelSize: 16; font.family: "Rajdhani"; font.weight: Font.Medium }
-            Text { text: "Rankings"; color: "#8a9ba8"; font.pixelSize: 16; font.family: "Rajdhani"; font.weight: Font.Medium }
-            Text { text: "Soporte"; color: "#8a9ba8"; font.pixelSize: 16; font.family: "Rajdhani"; font.weight: Font.Medium }
-        }
-
         // Copyright
         Text {
             Layout.alignment: Qt.AlignHCenter
             text: "© 2026 ChessAI."
-            color: "#465563" // Gris más oscuro para que no robe atención
+            color: "#465563"
             font.pixelSize: 14
             font.family: "Rajdhani"
         }

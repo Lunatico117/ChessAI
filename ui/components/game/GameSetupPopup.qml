@@ -8,13 +8,13 @@ Popup {
     height: 550
     modal: true // Hace que el fondo se oscurezca y no se pueda hacer clic fuera
     focus: true
-    closePolicy: Popup.NoAutoClose // Obliga al usuario a elegir una opción
+    closePolicy: Popup.NoAutoClose // Obliga al usuario a elegir una opcion
     anchors.centerIn: parent
 
-    // Señal que enviaremos a tu controlador de C++ cuando termine la configuración
+    // Señal que enviaremos a tu controlador de C++ cuando termine la configuracion
     signal setupComplete(string mode, int difficultyLevel)
 
-    // Variable para controlar qué pantalla mostrar (0 = Modo, 1 = Dificultad)
+    // Variable para controlar que pantalla mostrar (0 = Modo, 1 = Dificultad)
     property int currentStep: 0
 
     // Fondo oscuro que oscurece el tablero (Overlay)
@@ -22,17 +22,15 @@ Popup {
         color: "#aa0a0f14" // Negro con transparencia
     }
 
-    // Fondo del PopUp en sí
+    // Fondo del PopUp en si
     background: Rectangle {
-        color: "#161b22" // Color oscuro de tu diseño
+        color: "#1a222b"
         radius: 20
-        border.color: "#2a323c"
+        border.color: "#2e3b4e"
         border.width: 1
     }
 
-    // ==========================================
-    // PASO 1: SELECCIÓN DE MODO (Local vs IA)
-    // ==========================================
+    // Seleccion de modo
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 30
@@ -58,12 +56,16 @@ Popup {
 
         Item { Layout.fillHeight: true } // Espaciador
 
-        // Botón PvP
+        // Boton PvP
         Rectangle {
+            id: btnPvP
             Layout.fillWidth: true
             height: 60
             radius: 15
-            color: pvpMouseArea.containsMouse ? "#2a323c" : "#1e252e"
+            color: pvpMouseArea.containsMouse ? "#1a70ba" : "#208ce8"
+
+            // Animacion suave del color
+            Behavior on color { ColorAnimation { duration: 150 } }
 
             Text {
                 anchors.centerIn: parent
@@ -79,6 +81,8 @@ Popup {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
+                onPressed: btnPvP.scale = 0.97
+                onReleased: btnPvP.scale = 1.0
                 onClicked: {
                     setupPopup.close()
                     setupComplete("PvP", -1) // -1 porque no hay dificultad
@@ -86,12 +90,16 @@ Popup {
             }
         }
 
-        // Botón IA
+        // Boton IA
         Rectangle {
+            id: btnAI
             Layout.fillWidth: true
             height: 60
             radius: 15
             color: pveMouseArea.containsMouse ? "#1a70ba" : "#208ce8"
+
+            // Animacion suave del color
+            Behavior on color { ColorAnimation { duration: 150 } }
 
             Text {
                 anchors.centerIn: parent
@@ -107,8 +115,11 @@ Popup {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
+                onPressed: btnAI.scale = 0.97
+                onReleased: btnAI.scale = 1.0
                 onClicked: {
-                    //setupPopup.currentStep = 1 // Pasamos a la pantalla de dificultad
+                    // Se implementara cuando tengamos las dificultades diseñadas
+                    // setupPopup.currentStep = 1 // Pasamos a la pantalla de dificultad
                 }
             }
         }
@@ -116,9 +127,7 @@ Popup {
         Item { Layout.fillHeight: true } // Espaciador
     }
 
-    // ==========================================
-    // PASO 2: SELECCIÓN DE DIFICULTAD (Tu imagen)
-    // ==========================================
+    // Seleccion de dificultad
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 30
@@ -144,7 +153,7 @@ Popup {
 
         Item { Layout.preferredHeight: 10 } // Espaciador
 
-        // Función para crear los botones de dificultad
+        // Funcion para crear los botones de dificultad
         Repeater {
             model: [
                 { name: "Principiante", isPro: false, level: 0 },
@@ -155,12 +164,15 @@ Popup {
             ]
 
             Rectangle {
+                id:btnDifficulty
                 Layout.fillWidth: true
                 height: 50
                 radius: 15
                 // Si es Gran Maestro usa el azul, sino usa el oscuro
                 color: modelData.isPro ? (diffMouseArea.containsMouse ? "#1a70ba" : "#208ce8")
                                        : (diffMouseArea.containsMouse ? "#2a323c" : "#1e252e")
+
+                Behavior on color { ColorAnimation { duration: 150 } }
 
                 RowLayout {
                     anchors.fill: parent
@@ -195,6 +207,8 @@ Popup {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
+                    onPressed: btnDifficulty.scale = 0.97
+                    onReleased: btnDifficulty.scale = 1.0
                     onClicked: {
                         setupPopup.close()
                         setupComplete("PvE", modelData.level)

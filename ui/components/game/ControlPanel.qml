@@ -65,21 +65,21 @@ Rectangle {
                         }
                     }
 
-                    // 2. Lista de Movimientos (ListView)
+                    // 2 Lista de Movimientos (ListView)
                     ListView {
                         id: historyList
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        clip: true // Para que no se dibuje fuera del área al hacer scroll
+                        clip: true // Para que no se dibuje fuera del area al hacer scroll
 
                         // Leemos la lista desde tu propiedad en C++
                         model: chessController.logger.moveHistoryList
 
-                        // TRUCO DE QML: Solo creamos un delegado cada 2 movimientos (índices pares)
+                        // Solo creamos un delegado cada 2 movimientos, es decir hacemos que los indices vayan por pares
                         delegate: Item {
                             width: ListView.view.width
                             height: 22
-                            // Si el índice es impar, este Item se oculta y no ocupa espacio.
+                            // Si el indice es impar, este Item se oculta y no ocupa espacio.
                             // Si es par, dibuja la fila completa (Turno: Blanco + Negro).
                             visible: index % 2 === 0
 
@@ -88,7 +88,7 @@ Rectangle {
 
                             Rectangle {
                                 anchors.fill: parent
-                                // Fondo intercalado para mayor legibilidad (opcional, como en las tablas)
+                                // Fondo intercalado para mayor legibilidad
                                 color: (index / 2) % 2 === 0 ? "transparent" : "#1a222c"
 
                                 RowLayout {
@@ -96,7 +96,7 @@ Rectangle {
                                     anchors.leftMargin: 10
                                     anchors.rightMargin: 10
 
-                                    // Número de turno (Ej: 0,1 -> 1; 2,3 -> 2; 4,5 -> 3)
+                                    // Numero de turno (Ej: 0,1 -> 1; 2,3 -> 2; 4,5 -> 3)
                                     Text {
                                         text: Math.floor(index / 2) + 1
                                         color: "#6e7b8a"
@@ -110,12 +110,12 @@ Rectangle {
                                         Layout.fillWidth: true
                                         height: 25
                                         color: "transparent"
-                                        // Resaltado azul (como en la imagen) si es la jugada actual
                                         radius: 4
-                                        border.color: (index === chessController.logger.moveHistoryList.length - 1 || index === chessController.logger.moveHistoryList.length - 2) ? "#208ce8" : "transparent"
+                                        // Brilla SOLAMENTE si este indice es exactamente el ultimo movimiento
+                                        border.color: (index === chessController.logger.moveHistoryList.length - 1) ? "#208ce8" : "transparent"
 
                                         Text {
-                                            text: modelData // El string de la lista (ej. "e4")
+                                            text: modelData
                                             color: "#ffffff"
                                             font.pixelSize: 14
                                             font.family: "Open Sans"
@@ -132,9 +132,10 @@ Rectangle {
                                         height: 25
                                         color: "transparent"
                                         radius: 4
+                                        // Brilla SOLAMENTE si el indice de este movimiento (index + 1) es el ultimo
+                                        border.color: (index + 1 === chessController.logger.moveHistoryList.length - 1) ? "#208ce8" : "transparent"
 
                                         Text {
-                                            // Comprobamos si el movimiento negro existe en la lista
                                             text: (index + 1 < chessController.logger.moveHistoryList.length) ? chessController.logger.moveHistoryList[index + 1] : ""
                                             color: "#ffffff"
                                             font.pixelSize: 14
@@ -156,10 +157,10 @@ Rectangle {
                     }
                 }
 
-        // ZONA DE BOTONES DINÁMICA
+        // ZONA DE BOTONES DINAMICA
         Item {
             Layout.fillWidth: true
-            // Calculamos la altura automáticamente para no cortar nada
+            // Calculamos la altura automaticamente para no cortar nada
             implicitHeight: chessController.match.isGameOver ? gameOverColumn.implicitHeight : activeColumn.implicitHeight
 
             // Botones de JUEGO ACTIVO
@@ -311,7 +312,7 @@ Rectangle {
                     }
                 }
 
-                // 2. NUEVOS CONTROLES DE NAVEGACIÓN (Solo visibles en Modo Análisis)
+                // Controles de navegacion en el AnalysisMode
                 RowLayout {
                     width: parent.width
                     spacing: 10
@@ -365,7 +366,7 @@ Rectangle {
                     }
                 }
 
-                // 3. BOTONES NORMALES (Ocultos durante el Modo Análisis)
+                // Botones normales (Ocultos durante el Modo Análisis)
                 Rectangle {
                     id: btnRestart
                     width: parent.width

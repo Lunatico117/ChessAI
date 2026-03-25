@@ -16,7 +16,7 @@ Rectangle {
         anchors.margins: 10
         spacing: 5
 
-        // Agrupamos el icono y el título en una fila (Row)
+        // Agrupamos el icono y el titulo en una fila (Row)
         Row {
 
             Image {
@@ -29,7 +29,7 @@ Rectangle {
             }
 
             Text {
-                text: "ChessAI" // Ya sin el emoji
+                text: "ChessAI"
                 color: "#208ce8"
                 font.pixelSize: 45
                 font.family: "Rajdhani"

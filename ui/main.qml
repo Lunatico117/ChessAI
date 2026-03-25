@@ -12,14 +12,14 @@ Window {
         id: mainLoader
         anchors.fill: parent
 
-        // 1. Iniciamos en el Menú
+        // 1. Iniciamos en el Menu
         source: "qrc:/ui/views/MenuView.qml"
 
-        // 2. Escuchamos las señales del archivo que esté cargado actualmente
+        // 2. Escuchamos las señales del archivo que este cargado actualmente
         Connections {
             target: mainLoader.item
 
-            // Esta función se activa automáticamente cuando WelcomeScreen emite playClicked()
+            // Esta funcion se activa automaticamente cuando WelcomeScreen emite playClicked()
             function onPlayClicked() {
                 // Cambiamos la vista al juego
                 mainLoader.source = "views/GameView.qml"
