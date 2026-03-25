@@ -58,6 +58,9 @@ public:
     // Este invokable se usara para reiniciar el tablero
     Q_INVOKABLE void restartGame();
 
+    Q_INVOKABLE void startLocalGame();
+    Q_INVOKABLE void startGameVsAI(int difficultyLevel);
+
 
 signals:
     void turnChanged();

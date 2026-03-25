@@ -102,8 +102,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 # Esto permite usar la ruta "qrc:/ui/main.qml" en tu main.cpp
 qt_add_resources(${PROJECT_NAME} "qml_resources" PREFIX "/" FILES
     ui/main.qml
-    ui/views/DificultyAIView.qml
-    ui/views/GameOverView.qml
     ui/views/GameView.qml
     ui/views/MenuView.qml
 
@@ -111,6 +109,7 @@ qt_add_resources(${PROJECT_NAME} "qml_resources" PREFIX "/" FILES
     ui/components/game/ControlPanel.qml
     ui/components/game/DrawOfferPopup.qml
     ui/components/game/PromotionPopup.qml
+    ui/components/game/GameSetupPopup.qml
     ui/components/shared/SidebarMenu.qml
 
     ui/assets/fonts/GravitasOne/GravitasOne-Regular.ttf

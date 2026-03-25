@@ -6,11 +6,28 @@ Window {
     height: 900
     visible: true
     title: "ChessAI"
-    color: "#11161d" // El color oscuro de fondo general
+    color: "#11161d"
 
-    // Carga la vista del juego que crearemos a continuación
     Loader {
+        id: mainLoader
         anchors.fill: parent
-        source: "views/GameView.qml"
+
+        // 1. Iniciamos en el Menú
+        source: "qrc:/ui/views/MenuView.qml"
+
+        // 2. Escuchamos las señales del archivo que esté cargado actualmente
+        Connections {
+            target: mainLoader.item
+
+            // Esta función se activa automáticamente cuando WelcomeScreen emite playClicked()
+            function onPlayClicked() {
+                // Cambiamos la vista al juego
+                mainLoader.source = "views/GameView.qml"
+            }
+            function onMenuClicked() {
+                // Cambiamos la vista al juego
+                mainLoader.source = "views/MenuView.qml"
+            }
+        }
     }
 }

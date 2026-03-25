@@ -385,6 +385,51 @@ void ChessController::restartGame() {
 }
 
 
+void ChessController::startLocalGame() {
+    // 1. Instanciamos dos jugadores humanos
+    m_game = Game(new HumanPlayer(Color::WHITE), new HumanPlayer(Color::BLACK));
+
+    // 2. Reseteamos el estado visual y lógico (Misma lógica que en restartGame)
+    m_currentTurn = "white";
+    m_isAnalysisMode = false;
+    emit analysisModeChanged();
+
+    m_matchManager->reset();
+    m_logger->clearLog();
+    m_clock->start(10);
+
+    m_boardModel->updateFromGame(m_game);
+    emit turnChanged();
+
+    qDebug() << "Partida Local (PvP) iniciada con éxito.";
+}
+
+
+void ChessController::startGameVsAI(int difficultyLevel) {
+    // 1. TODO: Reemplazar el segundo HumanPlayer con tu IA cuando esté lista.
+    // Debería quedar algo así:
+    // m_game = Game(new HumanPlayer(Color::WHITE), new AIPlayer(Color::BLACK, difficultyLevel));
+
+    // Por AHORA, instanciamos dos humanos para que el juego no haga crash al iniciar
+    m_game = Game(new HumanPlayer(Color::WHITE), new HumanPlayer(Color::BLACK));
+
+    // 2. Reseteamos el estado visual y lógico
+    m_currentTurn = "white";
+    m_isAnalysisMode = false;
+    emit analysisModeChanged();
+
+    m_matchManager->reset();
+    m_logger->clearLog();
+    m_clock->start(10);
+
+    m_boardModel->updateFromGame(m_game);
+    emit turnChanged();
+
+    qDebug() << "Partida vs IA (PvE) iniciada. Nivel de dificultad:" << difficultyLevel;
+    qDebug() << "AVISO: IA no implementada aún. Jugando modo Local temporalmente.";
+}
+
+
 void ChessController::checkGameOver() {
     if (m_game.isGameOver()) {
         QString reason = QString::fromStdString(m_game.getEndReason()); // "Jaque Mate" o "Rey Ahogado"

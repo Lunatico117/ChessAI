@@ -402,7 +402,7 @@ Rectangle {
                         id: menuMouse; anchors.fill: parent; hoverEnabled: true
                         onPressed: btnMenu.scale = 0.97
                         onReleased: btnMenu.scale = 1.0
-                        onClicked: console.log("Volver al menú")
+                        onClicked: rootView.menuClicked()
                     }
                 }
             }

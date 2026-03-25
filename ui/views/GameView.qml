@@ -1,13 +1,12 @@
 import QtQuick
 import QtQuick.Layouts
 
-// 1. IMPORTAMOS LAS CARPETAS DE LOS COMPONENTES
-// Los dos puntos "../" significan "sal de la carpeta 'views'"
 import "../components/shared"
 import "../components/game"
 
 Item {
     id: rootView
+    signal menuClicked()
     anchors.fill: parent
 
     RowLayout {
@@ -30,6 +29,27 @@ Item {
             Layout.fillHeight: true
         }
     }
+
+    GameSetupPopup {
+            id: setupPopup
+            anchors.centerIn: parent
+
+            onSetupComplete: function(mode, difficultyLevel) {
+                console.log("Iniciando partida en modo:", mode, "- Nivel:", difficultyLevel)
+
+                // Aquí conectamos directamente con tu backend en C++
+                if (mode === "PvE") {
+                    chessController.startGameVsAI(difficultyLevel)
+                } else if (mode === "PvP") {
+                    chessController.startLocalGame()
+                }
+            }
+        }
+
+        // Esto hace que el PopUp se abra apenas cargue el GameView
+        Component.onCompleted: {
+            setupPopup.open()
+        }
 
     // 3. CONECTAMOS EL C++ Y LOS POPUPS
     Connections {

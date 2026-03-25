@@ -58,7 +58,7 @@ Popup {
                 scale: queenMouse.pressed ? 0.95 : 1.0
 
                 Image {
-                    source: "qrc:/ui/assets/" + root.prefix + "_queen.svg"
+                    source: "qrc:/ui/assets/pieces/" + root.prefix + "_queen.svg"
                     width: 38; height: 38
                     anchors.centerIn: parent
                 }
@@ -85,7 +85,7 @@ Popup {
                 scale: rookMouse.pressed ? 0.95 : 1.0
 
                 Image {
-                    source: "qrc:/ui/assets/" + root.prefix + "_rook.svg"
+                    source: "qrc:/ui/assets/pieces/" + root.prefix + "_rook.svg"
                     width: 38; height: 38
                     anchors.centerIn: parent
                 }
@@ -112,7 +112,7 @@ Popup {
                 scale: bishopMouse.pressed ? 0.95 : 1.0
 
                 Image {
-                    source: "qrc:/ui/assets/" + root.prefix + "_bishop.svg"
+                    source: "qrc:/ui/assets/pieces/" + root.prefix + "_bishop.svg"
                     width: 38; height: 38
                     anchors.centerIn: parent
                 }
@@ -139,7 +139,7 @@ Popup {
                 scale: knightMouse.pressed ? 0.95 : 1.0
 
                 Image {
-                    source: "qrc:/ui/assets/" + root.prefix + "_knight.svg"
+                    source: "qrc:/ui/assets/pieces/" + root.prefix + "_knight.svg"
                     width: 38; height: 38
                     anchors.centerIn: parent
                 }
