@@ -136,5 +136,5 @@ QString BoardModel::getPieceIcon(int row, int col) const {
     }
 
     QString colorPrefix = (sq.pieceColor == "white") ? "w" : "b";
-    return "qrc:ui/assets/" + colorPrefix + "_" + sq.pieceType + ".svg";
+    return "qrc:ui/assets/pieces/" + colorPrefix + "_" + sq.pieceType + ".svg";
 }

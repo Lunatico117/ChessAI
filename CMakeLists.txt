@@ -119,18 +119,19 @@ qt_add_resources(${PROJECT_NAME} "qml_resources" PREFIX "/" FILES
     ui/assets/fonts/Rajdhani/Rajdhani-Medium.ttf
     ui/assets/fonts/Rajdhani/Rajdhani-Regular.ttf
     ui/assets/fonts/Rajdhani/Rajdhani-SemiBold.ttf
-    ui/assets/b_bishop.svg
-    ui/assets/w_bishop.svg
-    ui/assets/b_king.svg
-    ui/assets/w_king.svg
-    ui/assets/b_knight.svg
-    ui/assets/w_knight.svg
-    ui/assets/b_queen.svg
-    ui/assets/w_queen.svg
-    ui/assets/b_pawn.svg
-    ui/assets/w_pawn.svg
-    ui/assets/b_rook.svg
-    ui/assets/w_rook.svg
+    ui/assets/pieces/b_bishop.svg
+    ui/assets/pieces/w_bishop.svg
+    ui/assets/pieces/b_king.svg
+    ui/assets/pieces/w_king.svg
+    ui/assets/pieces/b_knight.svg
+    ui/assets/pieces/w_knight.svg
+    ui/assets/pieces/b_queen.svg
+    ui/assets/pieces/w_queen.svg
+    ui/assets/pieces/b_pawn.svg
+    ui/assets/pieces/w_pawn.svg
+    ui/assets/pieces/b_rook.svg
+    ui/assets/pieces/w_rook.svg
+    ui/assets/icon/Logo_ChessAI.png
 
 
 )

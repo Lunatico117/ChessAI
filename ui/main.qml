@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Window
 
 Window {
-    width: 1280
-    height: 800
+    width: 1400
+    height: 900
     visible: true
     title: "ChessAI"
     color: "#11161d" // El color oscuro de fondo general

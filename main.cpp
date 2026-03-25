@@ -4,6 +4,7 @@
 #include <QFontDatabase>
 // Importa la clase necesaria para cargar y gestionar aplicaciones basadas en QML/Qt Quick
 #include <QQmlApplicationEngine>
+#include <QIcon>
 
 // Permite exponer objetos, variables y funciones de C++ para que sean accesibles directamente en la interfaz QML,
 // definiendo el alcance (scope) de las propiedades en una jerarquia
@@ -13,6 +14,8 @@
 int main(int argc, char *argv[]) {
     // Iniciamos la aplicacion grafica
     QGuiApplication app(argc, argv);
+
+    app.setWindowIcon(QIcon(":/ui/assets/icon/Logo_ChessAI.png"));
 
     // Rajdhani
     QFontDatabase::addApplicationFont(":/ui/assets/fonts/Rajdhani/Rajdhani-Regular.ttf");

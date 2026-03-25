@@ -16,7 +16,7 @@ Item {
 
         // 2. INSTANCIAMOS LOS COMPONENTES DE 'shared' Y 'game'
         SidebarMenu {
-            Layout.preferredWidth: 240
+            Layout.preferredWidth: 280
             Layout.fillHeight: true
         }
 
