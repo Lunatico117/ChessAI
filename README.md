@@ -83,15 +83,22 @@ La interfaz fue conceptualizada y bocetada inicialmente utilizando **Google Stit
 ```text
 ChessAI/
 ├── CMakeLists.txt
-├── src/
-│   ├── backend/          # Lógica pura: Board, GameState, Pieces, RuleValidator
-│   ├── controllers/      # Adaptadores: ChessController, BoardModel, MatchManager
-│   └── main.cpp          # Punto de entrada y configuración de Qt
-├── include/              # Cabeceras (.hpp) de backend y controladores
+├──── backend/ 
+│   ├── include/          # Cabeceras (.hpp) de backend
+│   ├── src/              # Lógica pura: Board, GameState, Pieces, RuleValidator
+│
+├── controllers/          # Adaptadores: ChessController, BoardModel, MatchManager
+│   ├── include/          # Cabeceras (.hpp) de backend y controladores
+│   └── src/              # Lógica: Controladores
+│
+├── test
+│
+│── main.cpp              # Punto de entrada y configuración de Qt
 ├── ui/                   # Capa Visual
 │   ├── assets/           # Iconos, piezas (SVG) y fuentes (TTF)
 │   ├── components/       # Componentes reusables de QML (ChessBoardUI, ControlPanel)
-│   └── views/            # Vistas principales (MenuView.qml, GameView.qml)
+│   ├── views/            # Vistas principales (MenuView.qml, GameView.qml)
+│   └── main.qml          # Configuracion de la APP
 └── docs/                 # Documentación técnica, diagramas UML
 ```
 ## 🚀 **Instalación y Uso**
