@@ -73,7 +73,7 @@ La interfaz fue conceptualizada y bocetada inicialmente utilizando **Google Stit
 | :--- | :--- |
 | **Lenguaje Core** | C++ (Estándar C++17) |
 | **Frontend / UI** | Qt 6, QML |
-| **Compilación** | CMake (`qt_add_qml_module` para AOT) |
+| **Compilación** | CMake|
 | **Diseño UX/UI** | Google Stitch |
 
 ---
