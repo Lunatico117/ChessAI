@@ -1,3 +1,0 @@
-set(__QT_DEPLOY_TARGET_ChessAI_FILE C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/build_release/ChessAI.exe)
-set(__QT_DEPLOY_TARGET_ChessAI_TYPE EXECUTABLE)
-set(__QT_DEPLOY_TARGET_ChessAI_RUNTIME_DLLS C:/Qt/6.10.2/mingw_64/bin/Qt6Widgets.dll;C:/Qt/6.10.2/mingw_64/bin/Qt6Quick.dll;C:/Qt/6.10.2/mingw_64/bin/Qt6OpenGL.dll;C:/Qt/6.10.2/mingw_64/bin/Qt6Gui.dll;C:/Qt/6.10.2/mingw_64/bin/Qt6QmlMeta.dll;C:/Qt/6.10.2/mingw_64/bin/Qt6QmlModels.dll;C:/Qt/6.10.2/mingw_64/bin/Qt6QmlWorkerScript.dll;C:/Qt/6.10.2/mingw_64/bin/Qt6Qml.dll;C:/Qt/6.10.2/mingw_64/bin/Qt6Network.dll;C:/Qt/6.10.2/mingw_64/bin/Qt6Core.dll)
