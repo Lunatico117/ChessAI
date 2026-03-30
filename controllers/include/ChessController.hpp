@@ -84,6 +84,10 @@ private:
 
     GameLogger* m_logger;
 
+    bool m_isVsAI = false;
+    int m_currentDifficulty;
+
+
     int m_selectedRow = -1;
     int m_selectedCol = -1;
 
@@ -98,4 +102,5 @@ private:
     int getIndex(int row, int col) const { return row * 8 + col; }
 
     void checkGameOver();
+    void processAITurn();
 };

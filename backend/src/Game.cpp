@@ -1,5 +1,6 @@
 #include "../include/Game.hpp"
 #include "../include/RuleValidator.hpp"
+#include "../include/Piece.hpp"
 #include <iostream>
 
 Game::Game(Player* white, Player* black)
@@ -75,41 +76,37 @@ std::vector<Position> Game::getLegalDestinations(Position origin) {
 }
 
 
-bool Game::processMove(Position from, Position to, PromotionType promotion) {
-    if (gameOver) return false;
+void Game::fillDTO(const Move& move, MoveRecordDTO& dto) {
+    dto.fromRow = move.getFrom().getRow();
+    dto.fromCol = move.getFrom().getCol();
+    dto.toRow = move.getTo().getRow();
+    dto.toCol = move.getTo().getCol();
 
-    // Solo pedimos los movimientos legales de la pieza que estamos tocando
-    std::vector<Move> legalMoves = getLegalMovesForPiece(from);
-    bool moveFound = false;
-
-    for (Move& m : legalMoves) {
-        if (m.getTo() == to) { // No necesitamos comparar m.getFrom() == from porque la lista ya está filtrada
-
-            if (m.getType() == MoveType::PROMOTION) {
-                if (m.getPromotionType() == promotion) {
-                    state.updateState(m);
-                    moveHistory.push_back(std::move(m));
-                    redoHistory.clear();
-                    moveFound = true;
-                    break;
-                }
-            } else {
-                state.updateState(m);
-                moveHistory.push_back(std::move(m));
-                redoHistory.clear();
-                moveFound = true;
-                break;
-            }
+    Piece* p = state.getBoard().getPieceAt(move.getFrom());
+    if (p) {
+        // Mapeamos el Enum interno a los strings que el Logger espera
+        switch(p->getType()) {
+        case PieceType::PAWN:   dto.pieceType = "pawn"; break;
+        case PieceType::KNIGHT: dto.pieceType = "knight"; break;
+        case PieceType::BISHOP: dto.pieceType = "bishop"; break;
+        case PieceType::ROOK:   dto.pieceType = "rook"; break;
+        case PieceType::QUEEN:  dto.pieceType = "queen"; break;
+        case PieceType::KING:   dto.pieceType = "king"; break;
         }
+    } else {
+        dto.pieceType = "";
     }
 
-    // Si no se encontro el movimiento, lo rechazamos
-    if (!moveFound) {
-        return false;
-    }
+    dto.isCapture = (state.getBoard().getPieceAt(move.getTo()) != nullptr) || (move.getType() == MoveType::EN_PASSANT);
+    dto.promotion = move.getPromotionType();
+    dto.moveType = move.getType();
+}
 
+void Game::executeMoveInternal(Move& move) {
+    state.updateState(move);
+    moveHistory.push_back(std::move(move));
+    redoHistory.clear();
 
-    // Verificamos si este movimiento causo Jaque Mate o Tablas al rival
     Color nextTurn = state.getCurrentTurn();
     hasUsedUndo[nextTurn == Color::WHITE ? 0 : 1] = false;
     std::vector<Move> nextMoves = generator.generateLegalMoves(state);
@@ -124,55 +121,44 @@ bool Game::processMove(Position from, Position to, PromotionType promotion) {
         }
         gameOver = true;
     }
+}
 
-    return true; // Movimiento exitoso
+MoveResult Game::processHumanMove(Position from, Position to, PromotionType promotion) {
+    MoveResult res {false, {}};
+    if (gameOver) return res;
+
+    std::vector<Move> legalMoves = getLegalMovesForPiece(from);
+
+    for (Move& m : legalMoves) {
+        if (m.getTo() == to && m.getPromotionType() == promotion) {
+            fillDTO(m, res.record);
+            executeMoveInternal(m);
+            res.success = true;
+            break;
+        }
+    }
+    return res;
+}
+
+MoveResult Game::executeAITurn() {
+    MoveResult res {false, {}};
+    if (gameOver) return res;
+
+    Color currentTurn = state.getCurrentTurn();
+    std::vector<Move> legalMoves = generator.generateLegalMoves(state);
+    Player* currentPlayer = (currentTurn == Color::WHITE) ? whitePlayer : blackPlayer;
+
+    Move aiMove = currentPlayer->getMove(state, legalMoves);
+    fillDTO(aiMove, res.record);
+    executeMoveInternal(aiMove);
+
+    res.success = true;
+    return res;
 }
 
 
 bool Game::isInCheck(Color color) const {
     return RuleValidator::isKingInCheck(state, color);
-}
-
-
-bool Game::isKingsideCastle(Position from, Position to) {
-    Piece* p = state.getBoard().getPieceAt(from);
-
-    // Si es el Rey y se mueve de la columna 4 (E) a la 6 (G), es enroque corto
-    if (p != nullptr && p->getType() == PieceType::KING) {
-        if (from.getCol() == 4 && to.getCol() == 6) {
-            return true;
-        }
-    }
-    return false;
-}
-
-
-bool Game::isQueensideCastle(Position from, Position to) {
-    Piece* p = state.getBoard().getPieceAt(from);
-
-    // Si es el Rey y se mueve de la columna 4 (E) a la 2 (C), es enroque largo
-    if (p != nullptr && p->getType() == PieceType::KING) {
-        if (from.getCol() == 4 && to.getCol() == 2) {
-            return true;
-        }
-    }
-    return false;
-}
-
-
-bool Game::isEnPassant(Position from, Position to) {
-    Piece* p = state.getBoard().getPieceAt(from);
-
-    // Si la pieza es un peón...
-    if (p != nullptr && p->getType() == PieceType::PAWN) {
-        // ...y su casilla destino es EXACTAMENTE el "enPassantTarget" que guardó GameState
-        // (La coordenada fantasma que dejaste habilitada)
-        if (to.getRow() == state.getEnPassantTarget().getRow() &&
-            to.getCol() == state.getEnPassantTarget().getCol()) {
-            return true;
-        }
-    }
-    return false;
 }
 
 

@@ -1,0 +1,34 @@
+<RCC>
+  <qresource prefix="/">
+    <file alias="ui/main.qml">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/main.qml</file>
+    <file alias="ui/views/GameView.qml">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/views/GameView.qml</file>
+    <file alias="ui/views/MenuView.qml">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/views/MenuView.qml</file>
+    <file alias="ui/components/game/ChessBoardUI.qml">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/components/game/ChessBoardUI.qml</file>
+    <file alias="ui/components/game/ControlPanel.qml">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/components/game/ControlPanel.qml</file>
+    <file alias="ui/components/game/DrawOfferPopup.qml">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/components/game/DrawOfferPopup.qml</file>
+    <file alias="ui/components/game/PromotionPopup.qml">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/components/game/PromotionPopup.qml</file>
+    <file alias="ui/components/game/GameSetupPopup.qml">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/components/game/GameSetupPopup.qml</file>
+    <file alias="ui/components/game/SurrenderPopup.qml">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/components/game/SurrenderPopup.qml</file>
+    <file alias="ui/components/shared/SidebarMenu.qml">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/components/shared/SidebarMenu.qml</file>
+    <file alias="ui/assets/fonts/GravitasOne/GravitasOne-Regular.ttf">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/fonts/GravitasOne/GravitasOne-Regular.ttf</file>
+    <file alias="ui/assets/fonts/OpenSans/OpenSans-VariableFont_wdth,wght.ttf">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/fonts/OpenSans/OpenSans-VariableFont_wdth,wght.ttf</file>
+    <file alias="ui/assets/fonts/Rajdhani/Rajdhani-Bold.ttf">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/fonts/Rajdhani/Rajdhani-Bold.ttf</file>
+    <file alias="ui/assets/fonts/Rajdhani/Rajdhani-Medium.ttf">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/fonts/Rajdhani/Rajdhani-Medium.ttf</file>
+    <file alias="ui/assets/fonts/Rajdhani/Rajdhani-Regular.ttf">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/fonts/Rajdhani/Rajdhani-Regular.ttf</file>
+    <file alias="ui/assets/fonts/Rajdhani/Rajdhani-SemiBold.ttf">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/fonts/Rajdhani/Rajdhani-SemiBold.ttf</file>
+    <file alias="ui/assets/pieces/b_bishop.svg">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/pieces/b_bishop.svg</file>
+    <file alias="ui/assets/pieces/w_bishop.svg">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/pieces/w_bishop.svg</file>
+    <file alias="ui/assets/pieces/b_king.svg">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/pieces/b_king.svg</file>
+    <file alias="ui/assets/pieces/w_king.svg">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/pieces/w_king.svg</file>
+    <file alias="ui/assets/pieces/b_knight.svg">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/pieces/b_knight.svg</file>
+    <file alias="ui/assets/pieces/w_knight.svg">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/pieces/w_knight.svg</file>
+    <file alias="ui/assets/pieces/b_queen.svg">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/pieces/b_queen.svg</file>
+    <file alias="ui/assets/pieces/w_queen.svg">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/pieces/w_queen.svg</file>
+    <file alias="ui/assets/pieces/b_pawn.svg">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/pieces/b_pawn.svg</file>
+    <file alias="ui/assets/pieces/w_pawn.svg">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/pieces/w_pawn.svg</file>
+    <file alias="ui/assets/pieces/b_rook.svg">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/pieces/b_rook.svg</file>
+    <file alias="ui/assets/pieces/w_rook.svg">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/pieces/w_rook.svg</file>
+    <file alias="ui/assets/icon/Logo_ChessAI.png">C:/Users/Samue/Thomas/Personal/Nacho/Semestres/2026_1/Estructuras de datos/ChessAI/ui/assets/icon/Logo_ChessAI.png</file>
+  </qresource>
+</RCC>
+

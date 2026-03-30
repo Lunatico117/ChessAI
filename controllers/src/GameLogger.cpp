@@ -5,6 +5,29 @@ GameLogger::GameLogger(QObject *parent) : QObject(parent) {
     // las pilas y la lista nacen vacías por defecto.
 }
 
+
+void GameLogger::logMove(const MoveRecordDTO& dto, bool isCheck, bool isMate) {
+    QString special = "";
+    if (dto.moveType == MoveType::CASTLING) {
+        // Columna 6 es 'g' (enroque corto), columna 2 es 'c' (enroque largo)
+        special = (dto.toCol == 6) ? "O-O" : "O-O-O";
+    }
+
+    QString promo = "";
+    switch(dto.promotion) {
+    case PromotionType::QUEEN:  promo = "Q"; break;
+    case PromotionType::ROOK:   promo = "R"; break;
+    case PromotionType::BISHOP: promo = "B"; break;
+    case PromotionType::KNIGHT: promo = "N"; break;
+    default: promo = ""; break;
+    }
+
+    // Llamamos a tu método original enviando los datos traducidos
+    logMove(QString::fromStdString(dto.pieceType),
+            dto.fromRow, dto.fromCol, dto.toRow, dto.toCol,
+            dto.isCapture, promo, special, isCheck, isMate);
+}
+
 // El logMove que traduce (solo llama al de arriba)
 void GameLogger::logMove(const QString& pieceType, int fromRow, int fromCol, int toRow, int toCol, bool isCapture, const QString& promotedTo, const QString& specialMove, bool isCheck, bool isMate) {
     // Le pasamos el nuevo parámetro al traductor

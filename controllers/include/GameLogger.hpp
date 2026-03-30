@@ -4,6 +4,7 @@
 #include <QStringList>
 #include <stack>
 #include <QString>
+#include "../backend/include/Game.hpp"
 
 class GameLogger : public QObject {
     Q_OBJECT
@@ -16,6 +17,8 @@ public:
     // Getters para QML
     QStringList getMoveHistoryList() const { return m_displayList; }
 
+    // Sobrecarga del metodo
+    void logMove(const MoveRecordDTO& dto, bool isCheck = false, bool isMate = false);
     // Registra un nuevo movimiento normal en el juego
     // Si creas una nueva linea temporal con un deshacer limpia el futuro
     void logMove(const QString& pieceType, int fromRow, int fromCol, int toRow, int toCol, bool isCapture, const QString& promotedTo = "", const QString& specialMove = "", bool isCheck = false, bool isMate = false);

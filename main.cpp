@@ -1,3 +1,6 @@
+#ifdef _WIN32
+#include <windows.h>
+#endif
 // Importa la clase base en Qt para aplicaciones GUI (interfaz grfica de usuario) sin widgets tradicionales
 #include <QGuiApplication>
 // Con esto podemos declarar las fuentes desde aca y usarlas en todo el qml
@@ -12,6 +15,9 @@
 #include "../controllers/include/ChessController.hpp"
 
 int main(int argc, char *argv[]) {
+    #ifdef _WIN32
+    FreeConsole(); // Esto cierra la consola negra mágicamente al instante
+    #endif
     // Iniciamos la aplicacion grafica
     QGuiApplication app(argc, argv);
 

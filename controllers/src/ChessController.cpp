@@ -1,11 +1,11 @@
 #include "../include/ChessController.hpp"
-#include "../backend/include/HumanPlayer.hpp"
+#include "../backend/include/PlayerFactory.hpp"
 #include <QDebug>
 
 ChessController::ChessController(QObject *parent)
     : QObject(parent),
-    m_game(new HumanPlayer(Color::WHITE), new HumanPlayer(Color::BLACK)),
-    m_boardModel(new BoardModel(this)),
+    // Usamos la fabrica para crear el juego base (Dummy) al iniciar la app
+    m_game(PlayerFactory::createPlayer("Human", Color::WHITE), PlayerFactory::createPlayer("Human", Color::BLACK)),    m_boardModel(new BoardModel(this)),
     m_clock(new GameClock(this)),
     m_matchManager(new MatchManager(this)), // INICIAMOS EL ÁRBITRO
     m_logger(new GameLogger(this))
@@ -36,6 +36,10 @@ void ChessController::handleSquareClick(int row, int col) {
         return;
     }
 
+    if (m_isVsAI && m_currentTurn == "black") {
+        return;
+    }
+
     int index = getIndex(row, col);
     Position clickedPos(row, col);
     const Board& board = m_game.getBoard();
@@ -52,7 +56,6 @@ void ChessController::handleSquareClick(int row, int col) {
 
         m_selectedRow = row;
         m_selectedCol = col;
-
         m_boardModel->clearSelectionsAndHighlights();
 
         SquareData sqData = m_boardModel->getSquare(index);
@@ -104,46 +107,31 @@ void ChessController::handleSquareClick(int row, int col) {
                 emit promotionRequested();
 
             } else {
-                // 1. Averiguamos que pieza se está moviendo (usando el índice de la selección original)
-                int selectedIndex = getIndex(m_selectedRow, m_selectedCol);
-                QString movingPiece = m_boardModel->getSquare(selectedIndex).pieceType;
+                // --- MOVIMIENTO NORMAL HUMANO ---
+                MoveResult res = m_game.processHumanMove(from, to);
 
-                // 2. Averiguamos si hay una pieza en la casilla destino (para saber si es captura)
-                bool isCapture = (board.getPieceAt(to) != nullptr);
-
-                bool isKingsideCastle = m_game.isKingsideCastle(from, to);
-                bool isQueensideCastle = m_game.isQueensideCastle(from, to);
-                bool isEnPassant = m_game.isEnPassant(from, to);
-
-                QString specialMove = "";
-                if (isKingsideCastle) specialMove = "O-O";
-                else if (isQueensideCastle) specialMove = "O-O-O";
-
-                // Si es peón al paso, forzamos que isCapture sea true
-                if (isEnPassant) isCapture = true;
-                // Es un movimiento normal
-                bool moveSuccess = m_game.processMove(from, to);
-
-                if (moveSuccess) {
-
+                if (res.success) {
                     bool isMate = (m_game.isGameOver() && m_game.getEndReason() == "Jaque Mate");
                     bool isCheck = false;
 
-                    //Se debe traducir de String a un ENUM para poder enviarlo con los parametros que necesita
-                    Color opponentColor = (m_currentTurn == "white") ? Color::BLACK : Color::WHITE;
                     if (!isMate) {
-                        isCheck = m_game.isInCheck(opponentColor); // <-- DEBES IMPLEMENTAR/USAR TU MÉTODO AQUÍ
+                        Color opponentColor = (m_currentTurn == "white") ? Color::BLACK : Color::WHITE;
+                        isCheck = m_game.isInCheck(opponentColor);
                     }
 
-                    // Pasar isCheck e isMate al Logger
-                    m_logger->logMove(movingPiece, m_selectedRow, m_selectedCol, row, col, isCapture, "", specialMove, isCheck, isMate);
+                    // El Logger usa el DTO directo
+                    m_logger->logMove(res.record, isCheck, isMate);
+
                     m_boardModel->clearSelectionsAndHighlights();
                     m_boardModel->updateFromGame(m_game);
                     m_currentTurn = (m_currentTurn == "white") ? "black" : "white";
-                    // Cambiamos el reloj cuando cambiamos el turno
                     m_clock->switchTurn(m_currentTurn);
                     emit turnChanged();
                     checkGameOver();
+
+                    if (m_isVsAI && m_currentTurn == "black" && !m_game.isGameOver()) {
+                        processAITurn();
+                    }
                 } else {
                     m_boardModel->clearSelectionsAndHighlights();
                 }
@@ -160,37 +148,24 @@ void ChessController::handleSquareClick(int row, int col) {
 
 
 void ChessController::promotePendingPawn(const QString& pieceType) {
-    // Traducimos el texto que nos manda QML a nuestro Enum de C++
-    PromotionType promoType = PromotionType::QUEEN; // Valor por defecto seguro
-    QString promoNotation = "Q";
 
-    if (pieceType == "rook") {
-        promoType = PromotionType::ROOK;
-        promoNotation = "R";
-    }
-    else if (pieceType == "bishop") {
-        promoType = PromotionType::BISHOP;
-        promoNotation = "B";
-    }
-    else if (pieceType == "knight"){
-        promoType = PromotionType::KNIGHT;
-        promoNotation = "N";
+    if (m_isVsAI && m_currentTurn == "black") {
+        return;
     }
 
-    // Averiguamos si había una pieza en el destino antes de mover
-    const Board& board = m_game.getBoard();
-    Position toPos(m_pendingToRow, m_pendingToCol);
-    bool isCapture = (board.getPieceAt(toPos) != nullptr);
+    PromotionType promoType = PromotionType::QUEEN;
+    if (pieceType == "rook") promoType = PromotionType::ROOK;
+    else if (pieceType == "bishop") promoType = PromotionType::BISHOP;
+    else if (pieceType == "knight") promoType = PromotionType::KNIGHT;
 
-    // Ejecutamos el movimiento que estaba pausado
-    bool moveSuccess = m_game.processMove(
+    // --- MOVIMIENTO DE CORONACIÓN HUMANO ---
+    MoveResult res = m_game.processHumanMove(
         Position(m_pendingFromRow, m_pendingFromCol),
         Position(m_pendingToRow, m_pendingToCol),
         promoType
         );
 
-    // Si fue exitoso, limpiamos visualmente y cambiamos turno
-    if (moveSuccess) {
+    if (res.success) {
         bool isMate = (m_game.isGameOver() && m_game.getEndReason() == "Jaque Mate");
         bool isCheck = false;
 
@@ -198,18 +173,54 @@ void ChessController::promotePendingPawn(const QString& pieceType) {
             Color opponentColor = (m_currentTurn == "white") ? Color::BLACK : Color::WHITE;
             isCheck = m_game.isInCheck(opponentColor);
         }
-        m_logger->logMove("pawn", m_pendingFromRow, m_pendingFromCol, m_pendingToRow, m_pendingToCol, isCapture, promoNotation, "", isCheck, isMate);        m_boardModel->clearSelectionsAndHighlights();
+
+        m_logger->logMove(res.record, isCheck, isMate);
+
+        m_boardModel->clearSelectionsAndHighlights();
         m_boardModel->updateFromGame(m_game);
         m_currentTurn = (m_currentTurn == "white") ? "black" : "white";
+        m_clock->switchTurn(m_currentTurn);
         emit turnChanged();
         checkGameOver();
+
+        if (m_isVsAI && m_currentTurn == "black" && !m_game.isGameOver()) {
+            processAITurn();
+        }
     }
 
-    // Reseteamos la memoria temporal para el futuro posibles coronaciones
     m_pendingFromRow = -1;
     m_pendingFromCol = -1;
     m_pendingToRow = -1;
     m_pendingToCol = -1;
+}
+
+void ChessController::processAITurn() {
+    qDebug() << "processAITurn() convocado...";
+
+    if (!m_game.isGameOver() && m_currentTurn == "black") {
+        QTimer::singleShot(500, this, [this]() {
+
+            // --- TURNO DE LA IA (Simétrico al humano) ---
+            MoveResult res = m_game.executeAITurn();
+
+            if (res.success) {
+                bool isMate = (m_game.isGameOver() && m_game.getEndReason() == "Jaque Mate");
+                bool isCheck = false;
+                if (!isMate) {
+                    isCheck = m_game.isInCheck(Color::WHITE);
+                }
+
+                m_logger->logMove(res.record, isCheck, isMate);
+
+                m_boardModel->updateFromGame(m_game);
+                m_currentTurn = "white";
+                m_clock->switchTurn(m_currentTurn);
+
+                emit turnChanged();
+                checkGameOver();
+            }
+        });
+    }
 }
 
 
@@ -364,7 +375,17 @@ void ChessController::stepForward() {
 
 
 void ChessController::restartGame() {
-    m_game = Game(new HumanPlayer(Color::WHITE), new HumanPlayer(Color::BLACK));
+    Player* p1 = PlayerFactory::createPlayer("Human", Color::WHITE);
+    Player* p2 = nullptr;
+
+    if (m_isVsAI) {
+        p2 = PlayerFactory::createPlayer("AI", Color::BLACK, m_currentDifficulty);
+    } else {
+        p2 = PlayerFactory::createPlayer("Human", Color::BLACK);
+    }
+
+    m_game = Game(p1, p2);
+
     m_currentTurn = "white";
 
     // Apaga el modo analisis
@@ -387,7 +408,11 @@ void ChessController::restartGame() {
 
 void ChessController::startLocalGame() {
     // 1. Instanciamos dos jugadores humanos
-    m_game = Game(new HumanPlayer(Color::WHITE), new HumanPlayer(Color::BLACK));
+    m_isVsAI = false;
+    Player* p1 = PlayerFactory::createPlayer("Human", Color::WHITE);
+    Player* p2 = PlayerFactory::createPlayer("Human", Color::BLACK);
+
+    m_game = Game(p1, p2);
 
     // 2. Reseteamos el estado visual y lógico (Misma lógica que en restartGame)
     m_currentTurn = "white";
@@ -408,10 +433,13 @@ void ChessController::startLocalGame() {
 void ChessController::startGameVsAI(int difficultyLevel) {
     // 1. TODO: Reemplazar el segundo HumanPlayer con tu IA cuando esté lista.
     // Debería quedar algo así:
-    // m_game = Game(new HumanPlayer(Color::WHITE), new AIPlayer(Color::BLACK, difficultyLevel));
+    m_isVsAI = true;
+    m_currentDifficulty = difficultyLevel;
 
-    // Por AHORA, instanciamos dos humanos para que el juego no haga crash al iniciar
-    m_game = Game(new HumanPlayer(Color::WHITE), new HumanPlayer(Color::BLACK));
+    Player* p1 = PlayerFactory::createPlayer("Human", Color::WHITE);
+    Player* p2 = PlayerFactory::createPlayer("AI", Color::BLACK, difficultyLevel);
+
+    m_game = Game(p1, p2);
 
     // 2. Reseteamos el estado visual y lógico
     m_currentTurn = "white";
@@ -449,3 +477,5 @@ void ChessController::checkGameOver() {
         }
     }
 }
+
+

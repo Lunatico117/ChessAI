@@ -3,6 +3,7 @@
 #include "Board.hpp"
 #include "Move.hpp"
 #include <vector>
+#include <cstdint>
 
 enum  class CastleSide {
     KING_SIDE,

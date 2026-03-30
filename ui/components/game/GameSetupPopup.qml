@@ -119,7 +119,7 @@ Popup {
                 onReleased: btnAI.scale = 1.0
                 onClicked: {
                     // Se implementara cuando tengamos las dificultades diseñadas
-                    // setupPopup.currentStep = 1 // Pasamos a la pantalla de dificultad
+                     setupPopup.currentStep = 1 // Pasamos a la pantalla de dificultad
                 }
             }
         }
