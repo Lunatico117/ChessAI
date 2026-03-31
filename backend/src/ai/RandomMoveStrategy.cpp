@@ -1,4 +1,3 @@
-// backend/src/RandomMoveStrategy.cpp
 #include "../include/ai/RandomMoveStrategy.hpp"
 #include <random>
 #include <stdexcept>

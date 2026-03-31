@@ -1,5 +1,6 @@
 #include "../include/AIPlayer.hpp"
 #include "../include/ai/RandomMoveStrategy.hpp"
+#include "../include/ai/ImitationStrategy.hpp"
 
 AIPlayer::AIPlayer(Color c, int difficulty) : Player(c), difficultyLevel(difficulty) {
     setStrategyByDifficulty();
@@ -8,9 +9,13 @@ AIPlayer::AIPlayer(Color c, int difficulty) : Player(c), difficultyLevel(difficu
 void AIPlayer::setStrategyByDifficulty() {
     if (difficultyLevel == 1) {
         strategy = std::make_unique<RandomMoveStrategy>();
-    } else {
+    }
+    else if(difficultyLevel == 2){
+        strategy = std::make_unique<ImitationStrategy>();
+    }
+    else {
         // Por defecto, o mientras construyes los demás niveles
-        strategy = std::make_unique<RandomMoveStrategy>();
+        strategy = std::make_unique<ImitationStrategy>();
     }
 }
 

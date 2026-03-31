@@ -4,7 +4,9 @@
 #include "../include/King.hpp"
 #include <cmath>
 
-GameState:: GameState(){
+GameState:: GameState()
+: lastMovePlayed(Position(0,0), Position(0,0))
+{
     board.setupInitialPosition();
     currentTurn = Color :: WHITE;
 
@@ -66,7 +68,8 @@ void GameState::updateState(Move& m){
     if (p == nullptr) return; // Seguridad
 
     // 1. Guardar el estado actual ANTES de cambiar cualquier cosa
-    stateHistory.push_back({wCastleK, wCastleQ, bCastleK, bCastleQ, enPassantTarget, halfMoveClock, zobristKey});
+    stateHistory.push_back({wCastleK, wCastleQ, bCastleK, bCastleQ, enPassantTarget, halfMoveClock, zobristKey,
+    Move(lastMovePlayed.getFrom(), lastMovePlayed.getTo(), lastMovePlayed.getType(), lastMovePlayed.getPromotionType())});
 
     // 2. Lógica del Reloj de 50 movimientos (halfMoveClock)
     // Se resetea a 0 si se mueve un peon o si hay una captura. Si no, suma 1.
@@ -90,6 +93,9 @@ void GameState::updateState(Move& m){
 
     // 6. Cambiar turno
     currentTurn = (currentTurn == Color::WHITE) ? Color::BLACK : Color::WHITE;
+
+    // Guardamos el ultimo movimiento
+    lastMovePlayed = Move(m.getFrom(), m.getTo(), m.getType(), m.getPromotionType());
 }
 
 void GameState::undoState(Move& m){
@@ -111,7 +117,8 @@ void GameState::undoState(Move& m){
 
     // Restaura las banderas anteriores
     if(!stateHistory.empty()){
-        StateInfo previousState = stateHistory.back();
+
+        StateInfo previousState = std::move(stateHistory.back());
         stateHistory.pop_back();
 
         wCastleK = previousState.wCastleK;
@@ -121,6 +128,7 @@ void GameState::undoState(Move& m){
         enPassantTarget = previousState.enPassantTarget;
         halfMoveClock = previousState.halfMoveClock; // Restauramos reloj
         zobristKey = previousState.zobristKey;       // Restauramos hash
+        lastMovePlayed = std::move(previousState.lastMovePlayed);
     }
 }
 

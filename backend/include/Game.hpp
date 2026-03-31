@@ -41,6 +41,8 @@ private:
     bool hasUsedUndo[2];
     void fillDTO(const Move& move, MoveRecordDTO& dto);
     void executeMoveInternal(Move& move); // Ejecuta y guarda en el historial
+    // Undo general
+    bool internalUndo();
 
 public:
     Game(Player* white, Player* black);

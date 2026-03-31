@@ -20,6 +20,8 @@ struct StateInfo
     Position enPassantTarget;
     int halfMoveClock;   // Regla de los 50 movimientos
     uint64_t zobristKey; // Para un futuro usar la tabla de trasposiciones
+    Move lastMovePlayed; // Ultimo movimiento para la dificultad 2 de la IA
+
 };
 
 
@@ -45,6 +47,8 @@ class GameState {
 
         int halfMoveClock;
         uint64_t zobristKey;
+
+        Move lastMovePlayed;
 
         // Cambiamos stack por vector (se comporta igual usando push_back y pop_back)
         std::vector<StateInfo> stateHistory;
@@ -74,7 +78,6 @@ class GameState {
         int getHalfMoveClock() const { return halfMoveClock; }
 
 
-
         // Es decir como la funcion es demasiado corta se deja en el hpp, lo cual mejora la optimizacion
         // Devuelve la posicion del rey
         Position getKingPosition(Color color) const {
@@ -90,13 +93,13 @@ class GameState {
             }
         }
 
-
-
         // Retorna si es posible realizar el enroque 
         bool canCastle (Color color, CastleSide side) const;
 
         // Permite saber donde se puede capturar al paso actualmente
         Position getEnPassantTarget() const;
+
+        const Move& getLastMove() const { return lastMovePlayed; }
 
         // Setters
 

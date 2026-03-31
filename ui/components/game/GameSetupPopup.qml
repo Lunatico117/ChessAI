@@ -156,11 +156,11 @@ Popup {
         // Funcion para crear los botones de dificultad
         Repeater {
             model: [
-                { name: "Principiante", isPro: false, level: 0 },
-                { name: "Aficionado", isPro: false, level: 1 },
-                { name: "Experto", isPro: false, level: 2 },
-                { name: "Maestro", isPro: false, level: 3 },
-                { name: "GRAN MAESTRO", isPro: true, level: 4 }
+                { name: "Principiante", isPro: false, level: 1 }, // Random
+                { name: "Aficionado",   isPro: false, level: 2 }, // Imitation
+                { name: "Experto",      isPro: false, level: 3 }, // Minimax Profundidad 1
+                { name: "Maestro",      isPro: false, level: 4 }, // Minimax Profundidad 3
+                { name: "GRAN MAESTRO", isPro: true,  level: 5 }  // Minimax Profundidad 5
             ]
 
             Rectangle {

@@ -1,7 +1,6 @@
 #include "../include/Game.hpp"
 #include "../include/RuleValidator.hpp"
 #include "../include/Piece.hpp"
-#include <iostream>
 
 Game::Game(Player* white, Player* black)
     // Como el Player se guarda como un puntero tenemos que asignarle un valor
@@ -19,12 +18,6 @@ bool Game::playTurn() {
 
     // Se verifica si hay Jaque Mate o Rey Ahogado
     if (legalMoves.empty()) {
-        if (RuleValidator::isKingInCheck(state, currentTurn)) {
-            std::cout << "\n¡JAQUE MATE! Gana el jugador "
-                      << (currentTurn == Color::WHITE ? "NEGRO" : "BLANCO") << ".\n";
-        } else {
-            std::cout << "\n¡TABLAS por Rey Ahogado!\n";
-        }
         gameOver = true;
         return false; // El juego termina
     }
@@ -123,6 +116,18 @@ void Game::executeMoveInternal(Move& move) {
     }
 }
 
+bool Game::internalUndo() {
+    if (moveHistory.empty()) return false;
+
+    Move lastMove = std::move(moveHistory.back());
+    moveHistory.pop_back();
+
+    state.undoState(lastMove); // Delegamos el trabajo físico al estado
+    redoHistory.push_back(std::move(lastMove)); // Lo pasamos al futuro
+
+    return true;
+}
+
 MoveResult Game::processHumanMove(Position from, Position to, PromotionType promotion) {
     MoveResult res {false, {}};
     if (gameOver) return res;
@@ -179,39 +184,28 @@ bool Game::isPromotionMove(Position from, Position to) const {
 
 
 bool Game::undoLastMove() {
-    if (moveHistory.empty()) return false; // No hay nada en el historial
-
-    // No permite deshacer cuando se haya acabado la partida
+    // 1. Reglas exclusivas del juego real
     if (gameOver && endReason == "Jaque Mate") {
-        return false; // Bloquea la acción por completo
+        return false;
     }
-    if (moveHistory.empty()) return false;
 
-    // ¿De quien fue el ultimo turno jugado? (El jugador que quiere deshacer)
     Color playerWhoMoved = (state.getCurrentTurn() == Color::WHITE) ? Color::BLACK : Color::WHITE;
     int playerIndex = (playerWhoMoved == Color::WHITE) ? 0 : 1;
 
-    // Verificamos si ya uso su comodin en este ciclo
     if (hasUsedUndo[playerIndex]) {
         return false;
     }
 
-    // Extraemos el ultimo movimiento de forma segura
-    Move lastMove = std::move(moveHistory.back());
-    moveHistory.pop_back();
+    // 2. Ejecutar la acción física
+    if (internalUndo()) {
+        hasUsedUndo[playerIndex] = true;
+        gameOver = false;
+        endReason = "";
+        winnerStr = "";
+        return true;
+    }
 
-    // Revertimos la logica del estado, el turno y devolvemos la pieza capturada
-    state.undoState(lastMove);
-
-    // Marcamos que ya uso su comodin por este turno
-    hasUsedUndo[playerIndex] = true;
-
-    // Detalle importante: Si el juego habia terminado por Mate, al deshacer lo reanudamos
-    gameOver = false;
-    endReason = "";
-    winnerStr = "";
-
-    return true;
+    return false;
 }
 
 
@@ -229,20 +223,8 @@ void Game::resetGame() {
 
 
 bool Game::stepBackwardAnalysis() {
-    // Si no hay nada en el pasado, no podemos retroceder
-    if (moveHistory.empty()) return false;
-
-    // Extraemos el último movimiento del pasado
-    Move lastMove = std::move(moveHistory.back());
-    moveHistory.pop_back();
-
-    // Revertimos el tablero lógicamente (ignorando las reglas de comodines y game over)
-    state.undoState(lastMove);
-
-    // Lo guardamos en el futuro
-    redoHistory.push_back(std::move(lastMove));
-
-    return true;
+    // En análisis no importan los comodines ni si hubo Jaque Mate
+    return internalUndo();
 }
 
 
