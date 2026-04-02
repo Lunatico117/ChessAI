@@ -9,6 +9,7 @@ class GameState;
 // Sintaxis de herencia 
 class Knight : public Piece{
     public:
+
         // Constructor
         Knight(Color c);
 
@@ -18,13 +19,6 @@ class Knight : public Piece{
         // La palabra clave 'override' le dice al compilador: "Asegurate de que 
         // estoy sobreescribiendo exactamente el metodo que me pidio mi clase padre".
         std::vector<Move> getPossibleMoves(const GameState& state, const Position& currentPos) const override ;
-
-        // El caballo vale 3
-        int getValue() const override { return 3; }
-
-        PieceType getType() const override {
-            return PieceType::KNIGHT;
-        }
 
         std::string getTypeName() const override { return "knight"; }
 };

@@ -5,8 +5,9 @@
 #include "../include/Bishop.hpp"
 #include "../include/Queen.hpp"
 #include "../include/King.hpp"
+#include "../include/ai/PieceSquareTables.hpp"
 
-Board::Board() : whiteMaterial(0), blackMaterial(0){
+Board::Board() : whiteMaterial(0), blackMaterial(0), whitePositionalScore(0), blackPositionalScore(0){
     // Con esto instanciamos el arreglo grid[8][8] y todos los unique_ptr estan en null 
     }
 
@@ -20,6 +21,13 @@ int Board::getBlackMaterial() const {
     return blackMaterial;
 }
 
+int Board::getWhitePositionalScore() const {
+    return whitePositionalScore;
+}
+
+int Board::getBlackPositionalScore() const {
+    return blackPositionalScore;
+}
 
 // Verifica si la posicion este dentro del tablero 
 bool Board::isValidPosition(const Position& pos) const {
@@ -58,11 +66,16 @@ void Board::movePiece(Move& m){
         // ¡IMPORTANTE! Leemos la pieza ANTES de hacer el std::move
         Piece* capturedPiece = grid[to.getRow()][to.getCol()].get();
 
+        // Leemos el score posicional de la pieza que va a ser capturada
+        int capPosScore = PST::getPositionalBonus(capturedPiece->getType(), capturedPiece->getColor(), to);
+
         // ACTUALIZACIÓN INCREMENTAL: Restar el material al jugador que pierde la pieza
         if (capturedPiece->getColor() == Color::WHITE) {
-            whiteMaterial -= capturedPiece->getValue();
+            whiteMaterial -= getPieceValue(capturedPiece->getType());
+            whitePositionalScore -= capPosScore; // NUEVO: Restamos el score posicional
         } else {
-            blackMaterial -= capturedPiece->getValue();
+            blackMaterial -= getPieceValue(capturedPiece->getType());
+            blackPositionalScore -= capPosScore; // NUEVO: Restamos el score posicional
         }
 
         // Ahora sí, el objeto Move la captura
@@ -73,6 +86,13 @@ void Board::movePiece(Move& m){
     // Comportamiento segun el tipo de movimiento
     switch (m.getType()){
         case MoveType::NORMAL:{
+
+            // Calculamos la diferencia posicional antes de mover
+            Piece* moving = grid[from.getRow()][from.getCol()].get();
+            int posDiff = PST::getPositionalBonus(moving->getType(), moving->getColor(), to) - PST::getPositionalBonus(moving->getType(), moving->getColor(), from);
+            if (moving->getColor() == Color::WHITE) whitePositionalScore += posDiff;
+            else blackPositionalScore += posDiff;
+
             // Movemos la pieza de from a to
             grid[to.getRow()][to.getCol()] = std::move(grid[from.getRow()][from.getCol()]);
             break;
@@ -81,11 +101,19 @@ void Board::movePiece(Move& m){
         case MoveType::PROMOTION:{
             // Obtenemos el color de la pieza del peon
             Color pieceColor = grid[from.getRow()][from.getCol()] -> getColor();
-            int pawnValue = grid[from.getRow()][from.getCol()]->getValue(); // Será 100
+            int pawnValue = getPieceValue(grid[from.getRow()][from.getCol()]->getType());
 
-            // ACTUALIZACIÓN INCREMENTAL: El peón va a desaparecer, restamos su valor
-            if (pieceColor == Color::WHITE) whiteMaterial -= pawnValue;
-            else blackMaterial -= pawnValue;
+            // Obtenemos el valor posicional del peon en la casilla de origen
+            int pawnPosScore = PST::getPositionalBonus(PieceType::PAWN, pieceColor, from);
+
+            // ACTUALIZACION INCREMENTAL: El peon va a desaparecer, restamos su valor
+            if (pieceColor == Color::WHITE) {
+                whiteMaterial -= pawnValue;
+                whitePositionalScore -= pawnPosScore; // Restamos posicional del peon
+            } else {
+                blackMaterial -= pawnValue;
+                blackPositionalScore -= pawnPosScore; // Restamos posicional del peon
+            }
             // Colocamos la nueva pieza pero dependiendo del tipo de coronacion
 
             switch (m.getPromotionType()) {
@@ -102,47 +130,92 @@ void Board::movePiece(Move& m){
                 default:
                     break;
                 }
-                // ACTUALIZACIÓN INCREMENTAL: Sumamos el valor de la nueva súper pieza (ej. +900)
-                int promotedValue = grid[to.getRow()][to.getCol()]->getValue();
-                if (pieceColor == Color::WHITE) whiteMaterial += promotedValue;
-                else blackMaterial += promotedValue;
+                // ACTUALIZACION INCREMENTAL: Sumamos el valor de la nueva pieza
+                int promotedValue = getPieceValue(grid[from.getRow()][from.getCol()]->getType());
 
+                // Sumamos el valor posicional de la NUEVA pieza en la casilla de destino ('to')
+                int promotedPosScore = PST::getPositionalBonus(grid[to.getRow()][to.getCol()]->getType(), pieceColor, to);
+
+                if (pieceColor == Color::WHITE) {
+                    whiteMaterial += promotedValue;
+                    whitePositionalScore += promotedPosScore;
+                } else {
+                    blackMaterial += promotedValue;
+                    blackPositionalScore += promotedPosScore;
+                }
             // Vaciamos la casilla de origen (el peon desaparece)
             grid[from.getRow()][from.getCol()] = nullptr;
             break;
         }
 
         case MoveType::EN_PASSANT: {
+            // Calculamos la diferencia posicional del peOn que ataca antes de moverlo
+            Piece* moving = grid[from.getRow()][from.getCol()].get();
+            int posDiff = PST::getPositionalBonus(moving->getType(), moving->getColor(), to) - PST::getPositionalBonus(moving->getType(), moving->getColor(), from);
+            if (moving->getColor() == Color::WHITE) whitePositionalScore += posDiff;
+            else blackPositionalScore += posDiff;
+
             // Movemos el peon que va a capturar a la casilla en diagonal
             grid[to.getRow()][to.getCol()] = std::move(grid[from.getRow()][from.getCol()]);
 
-            // El peón capturado NO estaba en 'to', estaba al lado de 'from'
+            // El peon capturado NO estaba en 'to', estaba al lado de 'from'
             Piece* capturedPawn = grid[from.getRow()][to.getCol()].get();
 
             if (capturedPawn != nullptr) {
-                // ACTUALIZACIÓN INCREMENTAL
-                if (capturedPawn->getColor() == Color::WHITE) whiteMaterial -= capturedPawn->getValue();
-                else blackMaterial -= capturedPawn->getValue();
-            }
 
+                int capPosScore = PST::getPositionalBonus(capturedPawn->getType(), capturedPawn->getColor(), Position(from.getRow(), to.getCol()));
+                // ACTUALIZACION INCREMENTAL
+                if (capturedPawn->getColor() == Color::WHITE){
+                    whiteMaterial -= getPieceValue(capturedPawn->getType());
+                    whitePositionalScore -= capPosScore;
+                }
+                else {
+                    blackMaterial -= getPieceValue(capturedPawn->getType());
+                    blackPositionalScore -= capPosScore;
+                }
+            }
             // Capturamos la pieza que estaba al lado, es decir en la misma fila pero en la columna de la diagonal
             m.setCapturedPiece(std::move(grid[from.getRow()][to.getCol()]));
 
             // Vaciamos la casilla
             grid[from.getRow()][to.getCol()] = nullptr;
             break;
+
         }
 
+
         case MoveType::CASTLING: {
+
+            // Diferencia posicional del Rey
+            Piece* king = grid[from.getRow()][from.getCol()].get();
+            int kingDiff = PST::getPositionalBonus(king->getType(), king->getColor(), to) - PST::getPositionalBonus(king->getType(), king->getColor(), from);
+            if (king->getColor() == Color::WHITE) whitePositionalScore += kingDiff;
+            else blackPositionalScore += kingDiff;
+
             // Movemos al rey a su lugar en el enroque
             grid[to.getRow()][to.getCol()] = std::move(grid[from.getRow()][from.getCol()]);
 
             // Movemos a la torre a su lugar en el enroque
             int row = to.getRow();
             if (to.getCol() == 6) { // Enroque Corto (El Rey fue a la columna 6)
+
+                // Diferencia posicional de la Torre (De columna 7 a 5)
+                Piece* rook = grid[row][7].get();
+                int rookDiff = PST::getPositionalBonus(rook->getType(), rook->getColor(), Position(row, 5)) - PST::getPositionalBonus(rook->getType(), rook->getColor(), Position(row, 7));
+                if (rook->getColor() == Color::WHITE) whitePositionalScore += rookDiff;
+                else blackPositionalScore += rookDiff;
+
                 grid[row][5] = std::move(grid[row][7]); // La Torre va de la col 7 a la 5
             }
+
             else if (to.getCol() == 2) { // Enroque Largo (El Rey fue a la columna 2)
+
+                // Diferencia posicional de la Torre (De columna 0 a 3)
+                Piece* rook = grid[row][0].get();
+                int rookDiff = PST::getPositionalBonus(rook->getType(), rook->getColor(), Position(row, 3)) - PST::getPositionalBonus(rook->getType(), rook->getColor(), Position(row, 0));
+                if (rook->getColor() == Color::WHITE) whitePositionalScore += rookDiff;
+                else blackPositionalScore += rookDiff;
+
                 grid[row][3] = std::move(grid[row][0]); // La Torre va de la col 0 a la 3
             }
             break;
@@ -158,6 +231,13 @@ void Board::undoPiece(Move& m){
 
     switch (m.getType()){
     case MoveType::NORMAL:{
+
+        // Invertimos la diferencia posicional antes de devolverla
+        Piece* moving = grid[to.getRow()][to.getCol()].get();
+        int posDiff = PST::getPositionalBonus(moving->getType(), moving->getColor(), from) - PST::getPositionalBonus(moving->getType(), moving->getColor(), to);
+        if (moving->getColor() == Color::WHITE) whitePositionalScore += posDiff;
+        else blackPositionalScore += posDiff;
+
         // Movemos la pieza de from a to
         grid[from.getRow()][from.getCol()] = std::move(grid[to.getRow()][to.getCol()]);
         break;
@@ -169,14 +249,36 @@ void Board::undoPiece(Move& m){
         // Obtenemos el color de la pieza del peon
         Color pieceColor = grid[to.getRow()][to.getCol()] -> getColor();
 
-        int promotedValue = promotedPiece->getValue(); // Ej: 900 (Reina)
+        int promotedValue = getPieceValue(promotedPiece->getType());
 
-        // ACTUALIZACIÓN INCREMENTAL: Restamos la súper pieza que va a desaparecer
-        if (pieceColor == Color::WHITE) whiteMaterial -= promotedValue;
-        else blackMaterial -= promotedValue;
+        // Valor posicional de la pieza coronada a restar
+        int promotedPosScore = PST::getPositionalBonus(promotedPiece->getType(), pieceColor, to);
+
+        // ACTUALIZACION INCREMENTAL: Restamos la pieza que va a desaparecer
+        if (pieceColor == Color::WHITE) {
+            whiteMaterial -= promotedValue;
+            whitePositionalScore -= promotedPosScore;
+        } else {
+            blackMaterial -= promotedValue;
+            blackPositionalScore -= promotedPosScore;
+        }
 
         // Colocamos la nueva pieza pero dependiendo del tipo de coronacion
         grid[from.getRow()][from.getCol()] = std::make_unique<Pawn>(pieceColor);
+
+        // Al revivir el peon, debemos sumar su valor de vuelta al tablero
+        int pawnValue = getPieceValue(PieceType::PAWN);
+
+        // Valor posicional del peon que revive en 'from'
+        int pawnPosScore = PST::getPositionalBonus(PieceType::PAWN, pieceColor, from);
+
+        if (pieceColor == Color::WHITE) {
+            whiteMaterial += pawnValue;
+            whitePositionalScore += pawnPosScore;
+        } else {
+            blackMaterial += pawnValue;
+            blackPositionalScore += pawnPosScore;
+        }
 
         // Vaciamos la casilla de origen (el peon desaparece)
         grid[to.getRow()][to.getCol()] = nullptr;
@@ -184,21 +286,46 @@ void Board::undoPiece(Move& m){
     }
 
     case MoveType::EN_PASSANT: {
+        // Invertimos la diferencia posicional del peon atacante
+        Piece* moving = grid[to.getRow()][to.getCol()].get();
+        int posDiff = PST::getPositionalBonus(moving->getType(), moving->getColor(), from) - PST::getPositionalBonus(moving->getType(), moving->getColor(), to);
+        if (moving->getColor() == Color::WHITE) whitePositionalScore += posDiff;
+        else blackPositionalScore += posDiff;
+
         // Devolvemos el peon a su posicion original
         grid[from.getRow()][from.getCol()] = std::move(grid[to.getRow()][to.getCol()]);
         break;
     }
 
     case MoveType::CASTLING: {
+
+        // Invertimos la diferencia posicional del Rey
+        Piece* king = grid[to.getRow()][to.getCol()].get();
+        int kingDiff = PST::getPositionalBonus(king->getType(), king->getColor(), from) - PST::getPositionalBonus(king->getType(), king->getColor(), to);
+        if (king->getColor() == Color::WHITE) whitePositionalScore += kingDiff;
+        else blackPositionalScore += kingDiff;
+
         // 1. Devolvemos el Rey a su posicion original
         grid[from.getRow()][from.getCol()] = std::move(grid[to.getRow()][to.getCol()]);
 
         // 2. Devolvemos la Torre a su posicion original
         int row = to.getRow();
         if (to.getCol() == 6) { // Era Enroque Corto
+            // Invertimos la diferencia posicional de la Torre (De 5 vuelve a 7)
+            Piece* rook = grid[row][5].get();
+            int rookDiff = PST::getPositionalBonus(rook->getType(), rook->getColor(), Position(row, 7)) - PST::getPositionalBonus(rook->getType(), rook->getColor(), Position(row, 5));
+            if (rook->getColor() == Color::WHITE) whitePositionalScore += rookDiff;
+            else blackPositionalScore += rookDiff;
+
             grid[row][7] = std::move(grid[row][5]); // Torre vuelve a la col 7
         }
         else if (to.getCol() == 2) { // Era Enroque Largo
+            // Invertimos la diferencia posicional de la Torre (De 3 vuelve a 0)
+            Piece* rook = grid[row][3].get();
+            int rookDiff = PST::getPositionalBonus(rook->getType(), rook->getColor(), Position(row, 0)) - PST::getPositionalBonus(rook->getType(), rook->getColor(), Position(row, 3));
+            if (rook->getColor() == Color::WHITE) whitePositionalScore += rookDiff;
+            else blackPositionalScore += rookDiff;
+
             grid[row][0] = std::move(grid[row][3]); // Torre vuelve a la col 0
         }
         break;
@@ -210,10 +337,16 @@ void Board::undoPiece(Move& m){
     if (m.isCapture()){
         std::unique_ptr<Piece> revivedPiece = m.releaseCapturedPiece();
 
+        // Evaluamos la posicion exacta donde la pieza revive (es diferente en En Passant)
+        Position revivePos = (m.getType() == MoveType::EN_PASSANT) ? Position(from.getRow(), to.getCol()) : to;
+        int capPosScore = PST::getPositionalBonus(revivedPiece->getType(), revivedPiece->getColor(), revivePos);
+
         if (revivedPiece->getColor() == Color::WHITE) {
-            whiteMaterial += revivedPiece->getValue();
+            whiteMaterial += getPieceValue(revivedPiece->getType());
+            whitePositionalScore += capPosScore; // Sumamos el score posicional de vuelta
         } else {
-            blackMaterial += revivedPiece->getValue();
+            blackMaterial += getPieceValue(revivedPiece->getType());
+            blackPositionalScore += capPosScore; // Sumamos el score posicional de vuelta
         }
 
         // La re-colocamos en el tablero
@@ -232,11 +365,16 @@ void Board::undoPiece(Move& m){
 // Coloca una nueva pieza para coronar un peon o para iniciar el juego
 void Board::placePiece(const Position& pos, std::unique_ptr<Piece> piece) {
     if (piece != nullptr) {
-        // ACTUALIZACIÓN INCREMENTAL: Sumar material
+        // Obtenemos el bonus posicional inicial
+        int posScore = PST::getPositionalBonus(piece->getType(), piece->getColor(), pos);
+
+        // ACTUALIZACION INCREMENTAL: Sumar material
         if (piece->getColor() == Color::WHITE) {
-            whiteMaterial += piece->getValue();
+            whiteMaterial += getPieceValue(piece->getType());
+            whitePositionalScore += posScore;
         } else {
-            blackMaterial += piece->getValue();
+            blackMaterial += getPieceValue(piece->getType());
+            blackPositionalScore += posScore;
         }
     }
     // Tu código original para poner la pieza en el grid

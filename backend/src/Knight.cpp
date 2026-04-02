@@ -3,7 +3,7 @@
 #include "../include/GameState.hpp"
 
 // Constructor
-Knight::Knight (Color c) : Piece(c) {
+Knight::Knight(Color c) : Piece(c, PieceType::KNIGHT) {
 }
 
 std::vector<Move> Knight::getPossibleMoves(const GameState& state, const Position& currentPos) const{

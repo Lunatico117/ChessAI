@@ -1,13 +1,15 @@
 #include "../include/Piece.hpp"
 
-// Implementaicon del cosntructor usando la lista de inicializacion
-Piece::Piece(Color c): color(c){ 
+// 1. El constructor ahora recibe y asigna ambos valores
+Piece::Piece(Color c, PieceType t) : color(c), type(t) {
 }
 
-// Implementacion del Getter 
-Color Piece::getColor()const {
+// 2. Getter del color (se queda igual)
+Color Piece::getColor() const {
     return color;
 }
 
-// El resto de implementaciones de posible movimiento se hacen directamente en las subclases
-// Ya que Piece es una clase abstracta
+// 3. Getter del tipo (¡Nuevo!)
+PieceType Piece::getType() const {
+    return type;
+}

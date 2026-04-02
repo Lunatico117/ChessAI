@@ -15,7 +15,8 @@ class Board
         std::unique_ptr<Piece> grid[8][8];
         int whiteMaterial;
         int blackMaterial;
-
+        int whitePositionalScore;
+        int blackPositionalScore;
 
     public:
         // Constructor
@@ -24,6 +25,9 @@ class Board
         // Getters para que la IA los lea rapidamente
         int getWhiteMaterial() const;
         int getBlackMaterial() const;
+        // Getter posicional para la IA
+        int getWhitePositionalScore() const;
+        int getBlackPositionalScore() const;
 
         // Metodos de consulta
         bool isValidPosition (const Position& pos) const;

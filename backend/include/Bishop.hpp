@@ -20,11 +20,5 @@ class Bishop : public Piece{
         // estoy sobreescribiendo exactamente el metodo que me pidio mi clase padre".
         std::vector<Move> getPossibleMoves(const GameState& state, const Position& currentPos) const override ;
 
-        // El alfil vale 3
-        int getValue() const override { return 3; }
-
-        PieceType getType() const override {
-            return PieceType::BISHOP;
-        }
         std::string getTypeName() const override { return "bishop"; }
 };

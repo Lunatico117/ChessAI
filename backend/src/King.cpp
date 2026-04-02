@@ -3,7 +3,7 @@
 #include "../include/GameState.hpp"
 
 // Constructor
-King::King (Color c) : Piece(c) {
+King::King (Color c) : Piece(c, PieceType::KING) {
 }
 
 std::vector<Move> King::getPossibleMoves(const GameState& state, const Position& currentPos) const{
@@ -11,7 +11,7 @@ std::vector<Move> King::getPossibleMoves(const GameState& state, const Position&
     const Board& board = state.getBoard();
     std::vector <Move> moves;
     // Las 8 direcciones en las que se mueve un Rey
-    // {1, 0} = Abajo, {-1, 0} = Arriba, {0, 1} = Derecha, {0, -1} = Izquierda 
+    // {1, 0} = Abajo, {-1, 0} = Arriba, {0, 1} = Derecha, {0, -1} = Izquierda
     // {1, 1} = Abajo Derecha, {1, -1} = Abajo Izquierda, {-1, 1} = Arriba Derecha, {-1, -1} = Arriba Izquierda
     int directions[8][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
 
@@ -20,7 +20,7 @@ std::vector<Move> King::getPossibleMoves(const GameState& state, const Position&
         int currentRow = currentPos.getRow() + dir[0];
         int currentCol = currentPos.getCol() + dir[1];
 
-    // Recorremos la direccion
+        // Recorremos la direccion
         Position nextPos(currentRow, currentCol);
 
         // Limite del tablero entonces se rompe el bucle
@@ -39,7 +39,7 @@ std::vector<Move> King::getPossibleMoves(const GameState& state, const Position&
                 moves.push_back(Move(currentPos, nextPos));
             }
 
-           }
+        }
     }
 
     int currentRow = currentPos.getRow();

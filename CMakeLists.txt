@@ -24,6 +24,7 @@ set(SOURCES
         backend/src/AIPlayer.cpp
         backend/src/ai/RandomMoveStrategy.cpp
         backend/src/ai/ImitationStrategy.cpp
+        backend/src/ai/Evaluator.cpp
         backend/src/HumanPlayer.cpp
         backend/src/Piece.cpp
         backend/src/Pawn.cpp
@@ -62,6 +63,8 @@ set(HEADERS
         backend/include/ai/IAIStrategy.hpp # Solo es una cabecera ya que es una interfaz pura (Un contrato)
         backend/include/ai/RandomMoveStrategy.hpp
         backend/include/ai/ImitationStrategy.hpp
+        backend/include/ai/Evaluator.hpp
+        backend/include/ai/PieceSquareTables.hpp
         backend/include/HumanPlayer.hpp
         backend/include/Piece.hpp
         backend/include/Pawn.hpp

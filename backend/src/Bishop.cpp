@@ -3,7 +3,7 @@
 #include "../include/GameState.hpp"
 
 // Constructor
-Bishop::Bishop (Color c) : Piece(c) {
+Bishop::Bishop(Color c) : Piece(c, PieceType::BISHOP) {
 }
 
 std::vector<Move> Bishop::getPossibleMoves(const GameState& state, const Position& currentPos) const{

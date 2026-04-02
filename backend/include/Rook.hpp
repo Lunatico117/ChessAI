@@ -10,7 +10,7 @@ class GameState;
 class Rook : public Piece{
     public:
         // Constructor
-        Rook(Color c);
+        Rook(Color c) ;
 
         // Destructor 
         ~Rook() override = default;
@@ -19,10 +19,5 @@ class Rook : public Piece{
         // estoy sobreescribiendo exactamente el metodo que me pidio mi clase padre".
         std::vector<Move> getPossibleMoves(const GameState& state, const Position& currentPos) const override ;
 
-        // La torre vale 5 
-        int getValue() const override { return 5; }
-        PieceType getType() const override {
-            return PieceType::ROOK;
-        }
         std::string getTypeName() const override { return "rook"; }
     };

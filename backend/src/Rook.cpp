@@ -3,7 +3,7 @@
 #include "../include/GameState.hpp"
 
 // Constructor
-Rook::Rook (Color c) : Piece(c) {
+Rook::Rook(Color c) : Piece(c, PieceType::ROOK) {
 }
 
 std::vector<Move> Rook::getPossibleMoves(const GameState& state, const Position& currentPos) const{

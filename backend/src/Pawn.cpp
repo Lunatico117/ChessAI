@@ -2,8 +2,8 @@
 #include "../include/Board.hpp"
 #include "../include/GameState.hpp"
 
-// Constructor 
-Pawn::Pawn (Color c) : Piece (c){
+// Constructor
+Pawn::Pawn (Color c) : Piece(c, PieceType::PAWN) {
 }
 
 std::vector<Move> Pawn::getPossibleMoves(const GameState& state, const Position& currentPos) const{

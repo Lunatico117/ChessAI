@@ -26,33 +26,42 @@ enum class PieceType {
     KING
 };
 
+// Esta función vive aquí, disponible para cualquiera que incluya Piece.hpp
+inline int getPieceValue(PieceType type) {
+    switch (type) {
+    case PieceType::PAWN:   return 100;
+    case PieceType::KNIGHT: return 300;
+    case PieceType::BISHOP: return 300;
+    case PieceType::ROOK:   return 500;
+    case PieceType::QUEEN:  return 900;
+    case PieceType::KING:   return 20000;
+    default: return 0;
+    }
+}
+
 class Piece{
     // Se protege y no se priva para que las clases hijas lo lean
     protected: 
         Color color;
+        PieceType type;
 
 
     public:
         // Constructor
-        Piece(Color c);
+        Piece(Color c, PieceType t);
 
         // Destructor virtual. Se usa en clases abstractas obligatoriamente 
         // Esto hace que cuando se destruya una pieza se limpie por completo la memoria de sus subclases
         virtual ~Piece() = default;
 
-        // Getter 
-        Color getColor()const;
+        // Getter
+        Color getColor() const ;
+        PieceType getType() const;
 
         // Metodo virtual puro ( =0) 
         // Esto lo convierte en clase abstracta 
         // Obliga a sus subclases crear sus propias reglas de movimiento
         virtual std::vector<Move> getPossibleMoves(const GameState& state, const Position& currentPos) const = 0;
-
-        // Cada pieza tiene un valor distinto
-        virtual int getValue() const = 0;
-
-        // Se usa para la IA
-        virtual PieceType getType() const = 0;
 
         // Se usa para el tablero
         // Cada pieza retorna su nombre para no usar dynamic_cast

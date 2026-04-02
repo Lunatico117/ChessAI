@@ -4,7 +4,7 @@
 
 
 // Constructor
-Queen::Queen (Color c) : Piece(c) {
+Queen::Queen(Color c) : Piece(c, PieceType::QUEEN) {
 }
 
 std::vector<Move> Queen::getPossibleMoves(const GameState& state, const Position& currentPos) const{
