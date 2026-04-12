@@ -7,9 +7,14 @@
 #include "../include/King.hpp"
 #include "../include/ai/PieceSquareTables.hpp"
 
-Board::Board() : whiteMaterial(0), blackMaterial(0), whitePositionalScore(0), blackPositionalScore(0){
-    // Con esto instanciamos el arreglo grid[8][8] y todos los unique_ptr estan en null 
+Board::Board() : whiteMaterial(0), blackMaterial(0), whitePositionalScore(0), blackPositionalScore(0), whiteBishops(0), blackBishops(0){
+    for (int i = 0; i < 8; ++i) {
+        whitePawnsOnFile[i] = 0;
+        blackPawnsOnFile[i] = 0;
     }
+
+    // Con esto instanciamos el arreglo grid[8][8] y todos los unique_ptr estan en null
+}
 
 
 
@@ -73,9 +78,19 @@ void Board::movePiece(Move& m){
         if (capturedPiece->getColor() == Color::WHITE) {
             whiteMaterial -= getPieceValue(capturedPiece->getType());
             whitePositionalScore -= capPosScore; // NUEVO: Restamos el score posicional
-        } else {
+
+            // Restar contadores si capturamos un Alfil o un Peon enemigo
+            if (capturedPiece->getType() == PieceType::BISHOP) whiteBishops--;
+            else if (capturedPiece->getType() == PieceType::PAWN) whitePawnsOnFile[to.getCol()]--;
+
+        }
+        else {
             blackMaterial -= getPieceValue(capturedPiece->getType());
             blackPositionalScore -= capPosScore; // NUEVO: Restamos el score posicional
+
+            // Restar contadores si capturamos un Alfil o un Peon enemigo
+            if (capturedPiece->getType() == PieceType::BISHOP) blackBishops--;
+            else if (capturedPiece->getType() == PieceType::PAWN) blackPawnsOnFile[to.getCol()]--;
         }
 
         // Ahora sí, el objeto Move la captura
@@ -92,6 +107,17 @@ void Board::movePiece(Move& m){
             int posDiff = PST::getPositionalBonus(moving->getType(), moving->getColor(), to) - PST::getPositionalBonus(moving->getType(), moving->getColor(), from);
             if (moving->getColor() == Color::WHITE) whitePositionalScore += posDiff;
             else blackPositionalScore += posDiff;
+
+            // Si un peon se mueve de columna actualizamos los contadores de columnas
+            if (moving->getType() == PieceType::PAWN && from.getCol() != to.getCol()) {
+                if (moving->getColor() == Color::WHITE) {
+                    whitePawnsOnFile[from.getCol()]--;
+                    whitePawnsOnFile[to.getCol()]++;
+                } else {
+                    blackPawnsOnFile[from.getCol()]--;
+                    blackPawnsOnFile[to.getCol()]++;
+                }
+            }
 
             // Movemos la pieza de from a to
             grid[to.getRow()][to.getCol()] = std::move(grid[from.getRow()][from.getCol()]);
@@ -110,9 +136,11 @@ void Board::movePiece(Move& m){
             if (pieceColor == Color::WHITE) {
                 whiteMaterial -= pawnValue;
                 whitePositionalScore -= pawnPosScore; // Restamos posicional del peon
+                whitePawnsOnFile[from.getCol()]--; // El peon desaparece de esta columna
             } else {
                 blackMaterial -= pawnValue;
                 blackPositionalScore -= pawnPosScore; // Restamos posicional del peon
+                blackPawnsOnFile[from.getCol()]--; // El peon desaparece de esta columna
             }
             // Colocamos la nueva pieza pero dependiendo del tipo de coronacion
 
@@ -123,6 +151,7 @@ void Board::movePiece(Move& m){
                 case PromotionType::ROOK: grid[to.getRow()][to.getCol()] = std::make_unique<Rook>(pieceColor);
                     break;
                 case PromotionType::BISHOP: grid[to.getRow()][to.getCol()] = std::make_unique<Bishop>(pieceColor);
+                    if (pieceColor == Color::WHITE) whiteBishops++; else blackBishops++; // Suma a la cantidad de alfiles del jugador
                     break;
                 case PromotionType::KNIGHT: grid[to.getRow()][to.getCol()] = std::make_unique<Knight>(pieceColor);
                     break;
@@ -152,8 +181,17 @@ void Board::movePiece(Move& m){
             // Calculamos la diferencia posicional del peOn que ataca antes de moverlo
             Piece* moving = grid[from.getRow()][from.getCol()].get();
             int posDiff = PST::getPositionalBonus(moving->getType(), moving->getColor(), to) - PST::getPositionalBonus(moving->getType(), moving->getColor(), from);
-            if (moving->getColor() == Color::WHITE) whitePositionalScore += posDiff;
-            else blackPositionalScore += posDiff;
+            if (moving->getColor() == Color::WHITE) {
+                whitePositionalScore += posDiff;
+                // El peon atacante cambia de columna
+                whitePawnsOnFile[from.getCol()]--;
+                whitePawnsOnFile[to.getCol()]++;
+            } else {
+                blackPositionalScore += posDiff;
+                // El peon atacante cambia de columna
+                blackPawnsOnFile[from.getCol()]--;
+                blackPawnsOnFile[to.getCol()]++;
+            }
 
             // Movemos el peon que va a capturar a la casilla en diagonal
             grid[to.getRow()][to.getCol()] = std::move(grid[from.getRow()][from.getCol()]);
@@ -168,10 +206,13 @@ void Board::movePiece(Move& m){
                 if (capturedPawn->getColor() == Color::WHITE){
                     whiteMaterial -= getPieceValue(capturedPawn->getType());
                     whitePositionalScore -= capPosScore;
+                    whitePawnsOnFile[to.getCol()]--; // El peon enemigo capturado desaparece de la columna 'to'
+
                 }
                 else {
                     blackMaterial -= getPieceValue(capturedPawn->getType());
                     blackPositionalScore -= capPosScore;
+                    blackPawnsOnFile[to.getCol()]--; // El peon enemigo capturado desaparece de la columna 'to'
                 }
             }
             // Capturamos la pieza que estaba al lado, es decir en la misma fila pero en la columna de la diagonal
@@ -238,6 +279,16 @@ void Board::undoPiece(Move& m){
         if (moving->getColor() == Color::WHITE) whitePositionalScore += posDiff;
         else blackPositionalScore += posDiff;
 
+        if (moving->getType() == PieceType::PAWN && from.getCol() != to.getCol()) {
+            if (moving->getColor() == Color::WHITE) {
+                whitePawnsOnFile[from.getCol()]++;
+                whitePawnsOnFile[to.getCol()]--;
+            } else {
+                blackPawnsOnFile[from.getCol()]++;
+                blackPawnsOnFile[to.getCol()]--;
+            }
+        }
+
         // Movemos la pieza de from a to
         grid[from.getRow()][from.getCol()] = std::move(grid[to.getRow()][to.getCol()]);
         break;
@@ -258,9 +309,11 @@ void Board::undoPiece(Move& m){
         if (pieceColor == Color::WHITE) {
             whiteMaterial -= promotedValue;
             whitePositionalScore -= promotedPosScore;
+            if (promotedPiece->getType() == PieceType::BISHOP) whiteBishops--;
         } else {
             blackMaterial -= promotedValue;
             blackPositionalScore -= promotedPosScore;
+            if (promotedPiece->getType() == PieceType::BISHOP) blackBishops--;
         }
 
         // Colocamos la nueva pieza pero dependiendo del tipo de coronacion
@@ -275,9 +328,11 @@ void Board::undoPiece(Move& m){
         if (pieceColor == Color::WHITE) {
             whiteMaterial += pawnValue;
             whitePositionalScore += pawnPosScore;
+            whitePawnsOnFile[from.getCol()]++; // El peon original reaparece en su columna
         } else {
             blackMaterial += pawnValue;
             blackPositionalScore += pawnPosScore;
+            blackPawnsOnFile[from.getCol()]++; // El peon original reaparece en su columna
         }
 
         // Vaciamos la casilla de origen (el peon desaparece)
@@ -289,8 +344,18 @@ void Board::undoPiece(Move& m){
         // Invertimos la diferencia posicional del peon atacante
         Piece* moving = grid[to.getRow()][to.getCol()].get();
         int posDiff = PST::getPositionalBonus(moving->getType(), moving->getColor(), from) - PST::getPositionalBonus(moving->getType(), moving->getColor(), to);
-        if (moving->getColor() == Color::WHITE) whitePositionalScore += posDiff;
-        else blackPositionalScore += posDiff;
+
+        if (moving->getColor() == Color::WHITE) {
+            whitePositionalScore += posDiff;
+            // Revertimos el conteo en las columnas
+            whitePawnsOnFile[from.getCol()]++;
+            whitePawnsOnFile[to.getCol()]--;
+        } else {
+            blackPositionalScore += posDiff;
+            // Revertimos el conteo en las columnas
+            blackPawnsOnFile[from.getCol()]++;
+            blackPawnsOnFile[to.getCol()]--;
+        }
 
         // Devolvemos el peon a su posicion original
         grid[from.getRow()][from.getCol()] = std::move(grid[to.getRow()][to.getCol()]);
@@ -344,9 +409,27 @@ void Board::undoPiece(Move& m){
         if (revivedPiece->getColor() == Color::WHITE) {
             whiteMaterial += getPieceValue(revivedPiece->getType());
             whitePositionalScore += capPosScore; // Sumamos el score posicional de vuelta
-        } else {
+
+            // NUEVO: Volvemos a sumar la pieza al contador si era Alfil o Peon
+            if (revivedPiece->getType() == PieceType::BISHOP) {
+                whiteBishops++;
+            }
+            else if (revivedPiece->getType() == PieceType::PAWN) {
+                whitePawnsOnFile[revivePos.getCol()]++;
+            }
+
+        }
+        else {
             blackMaterial += getPieceValue(revivedPiece->getType());
             blackPositionalScore += capPosScore; // Sumamos el score posicional de vuelta
+            // Volvemos a sumar la pieza al contador si era Alfil o Peon
+            if (revivedPiece->getType() == PieceType::BISHOP) {
+                blackBishops++;
+            }
+            else if (revivedPiece->getType() == PieceType::PAWN){
+                blackPawnsOnFile[revivePos.getCol()]++;
+            }
+
         }
 
         // La re-colocamos en el tablero
@@ -372,9 +455,24 @@ void Board::placePiece(const Position& pos, std::unique_ptr<Piece> piece) {
         if (piece->getColor() == Color::WHITE) {
             whiteMaterial += getPieceValue(piece->getType());
             whitePositionalScore += posScore;
-        } else {
+            // Inicializar contadores al colocar piezas en el tablero
+            if (piece->getType() == PieceType::BISHOP) {
+                whiteBishops++;
+            }
+            else if (piece->getType() == PieceType::PAWN) {
+                whitePawnsOnFile[pos.getCol()]++;
+            }
+        }
+        else {
             blackMaterial += getPieceValue(piece->getType());
             blackPositionalScore += posScore;
+            // Inicializar contadores al colocar piezas en el tablero
+            if (piece->getType() == PieceType::BISHOP) {
+                blackBishops++;
+            }
+            else if (piece->getType() == PieceType::PAWN) {
+                blackPawnsOnFile[pos.getCol()]++;
+            }
         }
     }
     // Tu código original para poner la pieza en el grid

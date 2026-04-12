@@ -13,10 +13,15 @@ class Board
         // Se usa Piece para guardar las fichas y si esta vacia sera nulo
 
         std::unique_ptr<Piece> grid[8][8];
+        // Heuristicas
         int whiteMaterial;
         int blackMaterial;
         int whitePositionalScore;
         int blackPositionalScore;
+        int whiteBishops;
+        int blackBishops;
+        int whitePawnsOnFile[8];
+        int blackPawnsOnFile[8];
 
     public:
         // Constructor
